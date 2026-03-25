@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "build": "echo \"Error: no build step defined\" && exit 1"
+    "build": "npm install"
   },
   "keywords": [],
   "author": "",

@@ -1,0 +1,20 @@
+<script src="https://cdn.tailwindcss.com"></script>
+<body class="h-screen flex items-center justify-center bg-indigo-50">
+    <form action="/auth/signup" method="POST" class="bg-white p-8 rounded-3xl shadow-xl w-96">
+        <h2 class="text-2xl font-bold mb-2 text-center text-indigo-600">Full Stack Cafe</h2>
+        <p class="text-center text-slate-500 mb-6">Join our community</p>
+        <% if(error){ %><p class="text-red-500 text-sm mb-4 text-center"><%= error %></p><% } %>
+        <input type="text" name="name" placeholder="Full Name" class="w-full p-3 mb-4 border rounded-xl bg-slate-50" required>
+        <input type="email" name="email" placeholder="Email" class="w-full p-3 mb-4 border rounded-xl bg-slate-50" required>
+        <input type="password" name="password" placeholder="Create Password" class="w-full p-3 mb-4 border rounded-xl bg-slate-50" required>
+        <select name="role" class="w-full p-3 mb-6 border rounded-xl bg-slate-50">
+            <option value="Student">I am a Student</option>
+            <option value="Admin">I am an Admin</option>
+        </select>
+        <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition">Create Account</button>
+        
+        <div class="mt-6 text-center">
+            <p class="text-slate-600">Already have an account? <a href="/login" class="text-indigo-600 font-bold hover:underline">Sign in</a></p>
+        </div>
+    </form>
+</body>

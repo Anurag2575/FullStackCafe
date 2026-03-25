@@ -1,0 +1,36 @@
+<script src="https://cdn.tailwindcss.com"></script>
+<body class="bg-slate-50">
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-sm p-4 flex justify-between items-center">
+        <h1 class="text-xl font-black text-indigo-600">FULL STACK CAFE</h1>
+        <div class="space-x-4 flex items-center">
+            <a href="/" class="text-slate-600 font-bold">🏠 Menu</a>
+            <a href="/logout" class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-700 transition">Logout</a>
+        </div>
+    </nav>
+
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-3xl shadow-sm mt-6">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-2">Welcome, <%= user.name %>!</h1>
+            <p class="text-slate-600">Main Dashboard</p>
+        </div>
+
+        <div class="bg-indigo-600 p-8 rounded-2xl text-white mb-8">
+            <p class="opacity-80 text-sm uppercase font-bold mb-2">Wallet Balance</p>
+            <h2 class="text-5xl font-black">₹<%= user.walletBalance %></h2>
+            <button class="mt-6 bg-white/20 hover:bg-white/30 text-white px-6 py-2 rounded-full font-bold transition">
+                Top Up with UPI
+            </button>
+        </div>
+
+        <% if (user.role === 'Admin') { %>
+            <div class="border-t pt-8">
+                <h3 class="text-xl font-bold text-red-600 mb-4">Admin Control Center</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <button class="bg-slate-900 text-white p-4 rounded-2xl font-bold">Manage Live Orders</button>
+                    <button class="bg-slate-100 text-slate-800 p-4 rounded-2xl font-bold">Inventory Toggle</button>
+                </div>
+            </div>
+        <% } %>
+    </div>
+</body>

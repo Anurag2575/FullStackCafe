@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <title>Full Stack Cafe - Classic Menu</title>
+    <style>
+        h1, h2, h3, h4, .font-serif { font-family: 'Playfair Display', serif; }
+        body { font-family: 'Lato', sans-serif; }
+        
+        /* Toast notification styles */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out, slideOut 0.3s ease-out 3.7s forwards;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .toast::before {
+            content: '✓';
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+    </style>
+</head>
+<body class="bg-[#fafaf9] text-stone-800">
+
+    <!-- Toast Notification -->
+    <% if (message) { %>
+        <div class="toast"><%= message %></div>
+        <script>
+            // Auto-remove toast after 4 seconds
+            setTimeout(() => {
+                const toast = document.querySelector('.toast');
+                if (toast) toast.remove();
+            }, 4000);
+        </script>
+    <% } %>
+
+    <!-- Navigation -->
+    <nav class="bg-white px-6 py-4 shadow-sm border-b border-stone-200 flex justify-between items-center sticky top-0 z-50">
+        <h1 class="text-2xl font-bold text-amber-900 tracking-wider flex items-center gap-2">
+            ☕ FULL STACK CAFE
+        </h1>
+        <div class="flex items-center gap-6">
+            <!-- always show cart link regardless of login state -->
+            <a href="/cart" class="relative group">
+                <div class="p-2 bg-amber-50 rounded-full text-amber-900 group-hover:bg-amber-100 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                    </svg>
+                </div>
+                <% if (cart && cart.length > 0) { %>
+                    <span class="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">
+                        <%= cart.length %>
+                    </span>
+                <% } %>
+            </a>
+
+            <% if (user) { %>
+                <% if (user.role === 'Admin') { %>
+                    <a href="/admin/panel" class="bg-amber-100 text-amber-800 px-4 py-2 rounded-lg font-bold text-sm hover:bg-amber-200 transition">Admin Panel</a>
+                <% } %>
+                <a href="/order" class="text-stone-600 hover:text-amber-800 transition font-medium">My Orders</a>
+                <a href="/dashboard" class="font-bold text-stone-700 hover:text-amber-800 transition">Hi, <%= user.name %></a>
+                <a href="/logout" class="text-red-700 font-bold hover:text-red-800 text-sm uppercase tracking-wide ml-2">Logout</a>
+            <% } else { %>
+                <a href="/login" class="font-bold text-amber-900 hover:text-amber-700">Login</a>
+                <a href="/signup" class="bg-amber-900 text-white px-5 py-2 rounded-lg font-bold hover:bg-amber-800 transition">Sign Up</a>
+            <% } %>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="bg-amber-900 text-white py-20 px-6 text-center relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+        <div class="relative z-10 max-w-3xl mx-auto">
+            <h2 class="text-5xl font-bold mb-4 font-serif italic">Taste the Tradition</h2>
+            <p class="text-amber-100 text-lg mb-8 font-light">Experience the finest coffee and artisanal snacks, crafted with passion.</p>
+            <a href="#menu" class="inline-block bg-white text-amber-900 px-8 py-3 rounded-full font-bold hover:bg-amber-50 transition shadow-lg">View Menu</a>
+        </div>
+    </header>
+
+    <!-- Menu Grid -->
+    <main id="menu" class="max-w-6xl mx-auto p-8">
+        <div class="flex items-center justify-center mb-12">
+            <div class="h-px bg-stone-300 w-24"></div>
+            <h3 class="text-3xl font-bold text-stone-800 mx-6 font-serif">Our Menu</h3>
+            <div class="h-px bg-stone-300 w-24"></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <% items.forEach(item => { %>
+                <div class="bg-white rounded-xl shadow-sm hover:shadow-xl transition duration-300 overflow-hidden border border-stone-100 group flex flex-col">
+                    <!-- Image Area -->
+                    <div class="h-48 bg-stone-200 relative overflow-hidden">
+                        <% if (item.image) { %>
+                            <img src="<%= item.image %>" alt="<%= item.name %>" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <% } else { %>
+                            <div class="w-full h-full flex items-center justify-center text-stone-400 text-4xl">☕</div>
+                        <% } %>
+                        
+                        <!-- Veg/Non-Veg Badge -->
+                        <div class="absolute top-3 right-3 bg-white p-1 rounded-md shadow-sm">
+                            <% if (item.isVeg) { %>
+                                <div class="w-4 h-4 border-2 border-green-600 flex items-center justify-center rounded-sm">
+                                    <div class="w-2 h-2 bg-green-600 rounded-full"></div>
+                                </div>
+                            <% } else { %>
+                                <div class="w-4 h-4 border-2 border-red-600 flex items-center justify-center rounded-sm">
+                                    <div class="w-2 h-2 bg-red-600 rounded-full"></div>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="p-6 flex-1 flex flex-col">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="text-xl font-bold text-stone-800 font-serif"><%= item.name %></h4>
+                            <span class="text-lg font-bold text-amber-700">₹<%= item.price %></span>
+                        </div>
+                        <p class="text-stone-500 text-sm mb-6 flex-1 leading-relaxed"><%= item.description %></p>
+                        
+                        <form action="/cart/add" method="POST" class="mt-auto">
+                            <input type="hidden" name="itemId" value="<%= item.id %>">
+                            <input type="hidden" name="name" value="<%= item.name %>">
+                            <input type="hidden" name="price" value="<%= item.price %>">
+                            
+                            <button type="submit" class="w-full bg-stone-800 text-white py-3 rounded-lg font-bold hover:bg-amber-900 transition flex items-center justify-center gap-2 group-hover:shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                </svg>
+                                Add to Order
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </main>
+
+    <footer class="bg-stone-900 text-stone-400 py-8 text-center mt-12">
+        <p>&copy; 2024 Full Stack Cafe. Crafted with ☕ and Code.</p>
+    </footer>
+</body>
+</html>

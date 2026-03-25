@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Item</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('partials/header') %>
+
+    <div class="container">
+        <h2>Edit Item</h2>
+        <form action="/admin/edit-item/<%= item.id %>" method="POST" class="form-group">
+            <div class="input-group">
+                <label for="name">Item Name</label>
+                <input type="text" id="name" name="name" value="<%= item.name %>" required>
+            </div>
+            <div class="input-group">
+                <label for="price">Price</label>
+                <input type="number" id="price" name="price" value="<%= item.price %>" step="0.01" required>
+            </div>
+            <div class="input-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" required><%= item.description %></textarea>
+            </div>
+            <div class="input-group">
+                <label for="image">Image URL</label>
+                <input type="text" id="image" name="image" value="<%= item.image %>">
+            </div>
+            <div class="input-group checkbox-group">
+                <label for="isVeg"><input type="checkbox" id="isVeg" name="isVeg" <%= item.isVeg ? 'checked' : '' %>> Vegetarian</label>
+            </div>
+            <button type="submit" class="btn">Update Item</button>
+            <a href="/admin" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <title>Cart - Full Stack Cafe</title>
+    <style>
+        h1, h2, h3, h4, .font-serif { font-family: 'Playfair Display', serif; }
+        body { font-family: 'Lato', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#fafaf9] text-stone-800">
+    <nav class="bg-white px-6 py-4 shadow-sm border-b border-stone-200 flex justify-between items-center sticky top-0 z-50">
+        <h1 class="text-2xl font-bold text-amber-900 tracking-wider flex items-center gap-2">
+            ☕ FULL STACK CAFE
+        </h1>
+        <div class="space-x-6 flex items-center">
+            <a href="/" class="text-stone-600 hover:text-amber-800 transition font-medium">Menu</a>
+            <% if (user) { %>
+                <% if (user.role === 'Admin') { %>
+                    <a href="/admin/panel" class="bg-amber-100 text-amber-800 px-4 py-2 rounded-lg font-bold text-sm hover:bg-amber-200 transition">Admin Panel</a>
+                <% } %>
+                <a href="/order" class="text-stone-600 hover:text-amber-800 transition font-medium">My Orders</a>
+                <a href="/dashboard" class="font-bold text-stone-700 hover:text-amber-800">Hi, <%= user.name %></a>
+                <a href="/logout" class="text-red-700 font-bold hover:text-red-800 text-sm uppercase tracking-wide">Logout</a>
+            <% } else { %>
+                <a href="/login" class="font-bold text-amber-900 hover:text-amber-700">Login</a>
+                <a href="/signup" class="bg-amber-900 text-white px-5 py-2 rounded-lg font-bold hover:bg-amber-800 transition">Sign Up</a>
+            <% } %>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto p-6">
+        <!-- tabs for cart / orders -->
+        <div class="flex gap-8 mb-8">
+            <button class="tab-btn tab-active text-amber-900 font-bold text-2xl" data-tab="cart">Your Order</button>
+            <% if (user) { %>
+                <button class="tab-btn text-stone-600 hover:text-amber-900 font-bold text-2xl" data-tab="orders">My Orders</button>
+            <% } %>
+        </div>
+
+        <% if (error) { %>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <%= error %>
+            </div>
+        <% } %>
+        
+        <div id="cart-tab" class=""> 
+        <% if (cart && cart.length > 0) { %>
+            <!-- Cart Items -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm mb-6">
+                <h3 class="font-bold text-xl mb-6 text-stone-700 font-serif">Items in Your Cart</h3>
+                
+                <% cart.forEach(item => { %>
+                    <div class="flex justify-between items-center py-6 border-b border-stone-100 last:border-b-0 hover:bg-stone-50 px-4 rounded-lg transition duration-200">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg text-stone-800 font-serif"><%= item.name %></h3>
+                            <p class="text-stone-500 text-sm">₹<%= item.price %> per item</p>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <div class="flex items-center gap-3 bg-stone-100 rounded-full px-3 py-1 border border-stone-200">
+                                <form action="/cart/decrease/<%= item.itemId %>" method="POST" style="display: inline;">
+                                    <button type="submit" class="w-8 h-8 flex items-center justify-center <%= item.quantity === 1 ? 'text-stone-300 cursor-not-allowed' : 'text-amber-700 hover:bg-white hover:shadow-sm rounded-full' %> transition" <%= item.quantity === 1 ? 'disabled' : '' %>>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" /></svg>
+                                    </button>
+                                </form>
+                                <span class="w-6 text-center font-bold text-stone-800"><%= item.quantity %></span>
+                                <form action="/cart/increase/<%= item.itemId %>" method="POST" style="display: inline;">
+                                    <button type="submit" class="w-8 h-8 flex items-center justify-center text-amber-700 hover:bg-white hover:shadow-sm rounded-full transition">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                    </button>
+                                </form>
+                            </div>
+                            <% if (item.quantity === 1) { %>
+                                <form action="/cart/remove/<%= item.itemId %>" method="POST">
+                                    <button type="submit" class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition" title="Remove Item">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            <% } %>
+                            <div class="flex flex-col items-end">
+                                <p class="text-xs text-stone-400 uppercase tracking-wide">Subtotal</p>
+                                <p class="text-lg font-bold text-amber-900">₹<%= item.price * item.quantity %></p>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+                
+                <!-- Order Summary -->
+                <div class="mt-8 pt-6 border-t border-stone-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-stone-600">Total Items</h3>
+                        <p class="font-bold text-xl text-stone-800"><%= cart.length %></p>
+                    </div>
+                    <div class="flex justify-between items-center mb-6 bg-amber-50 p-6 rounded-xl border border-amber-100">
+                        <h3 class="font-bold text-xl text-amber-900 font-serif">Total Amount</h3>
+                        <h3 class="font-bold text-3xl text-amber-900">₹<%= total %></h3>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Confirm Order -->
+            <% if (user) { %>
+                <form action="/order/place" method="POST" class="flex gap-4">
+                    <a href="/" class="flex-1 bg-white border border-stone-300 text-stone-600 py-4 rounded-xl font-bold text-center hover:bg-stone-50 transition">
+                        Continue Shopping
+                    </a>
+                    <button type="submit" class="flex-1 bg-amber-900 text-white py-4 rounded-xl font-bold hover:bg-amber-800 transition text-lg shadow-lg shadow-amber-900/20">
+                        ✓ Confirm Order (₹<%= total %>)
+                    </button>
+                </form>
+            <% } else { %>
+                <div class="flex gap-4">
+                    <a href="/" class="flex-1 bg-white border border-stone-300 text-stone-600 py-4 rounded-xl font-bold text-center hover:bg-stone-50 transition">
+                        Continue Shopping
+                    </a>
+                    <a href="/login" class="flex-1 bg-amber-900 text-white py-4 rounded-xl font-bold hover:bg-amber-800 transition text-lg shadow-lg shadow-amber-900/20 text-center">
+                        Login to Confirm (₹<%= total %>)
+                    </a>
+                </div>
+            <% } %>
+        <% } else { %>
+            <div class="bg-white p-16 rounded-2xl shadow-sm text-center border border-stone-100">
+                <div class="text-6xl mb-6 opacity-20">☕</div>
+                <h3 class="text-3xl font-bold mb-3 font-serif text-stone-800">Your cart is empty</h3>
+                <p class="text-stone-500 mb-8">Start exploring our delicious menu and add some items!</p>
+                <a href="/" class="inline-block bg-amber-900 text-white px-10 py-4 rounded-xl font-bold hover:bg-amber-800 transition shadow-lg shadow-amber-900/20">
+                    Browse Menu
+                </a>
+            </div>
+        <% } %>
+        </div>
+
+        <% if (user) { %>
+        <div id="orders-tab" class="hidden">
+            <% if ((activeOrders && activeOrders.length > 0) || (pastOrders && pastOrders.length > 0)) { %>
+                <!-- reuse order listing from orders.ejs but simplified -->
+                <% if (activeOrders && activeOrders.length > 0) { %>
+                    <h3 class="text-2xl font-bold mb-4">Active Orders</h3>
+                    <% activeOrders.forEach(order => { %>
+                        <div class="bg-white border border-stone-200 rounded-lg shadow-sm p-4 mb-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-bold">#<%= order.id.substring(0,8) %></span>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold
+                                    <% if (order.status === 'Pending') { %>bg-yellow-500<% } %>
+                                    <% if (order.status === 'Preparing') { %>bg-blue-500<% } %>
+                                "><%= order.status %></span>
+                            </div>
+                            <div class="text-sm text-stone-600">
+                                Placed on <%= new Date(order.createdAt).toLocaleDateString() %>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } %>
+                <% if (pastOrders && pastOrders.length > 0) { %>
+                    <h3 class="text-2xl font-bold mt-8 mb-4">Past Orders</h3>
+                    <% pastOrders.forEach(order => { %>
+                        <div class="bg-white border border-stone-200 rounded-lg shadow-sm p-4 mb-4 opacity-90">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-bold">#<%= order.id.substring(0,8) %></span>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold
+                                    <% if (order.status === 'Completed') { %>bg-purple-500<% } %>
+                                    <% if (order.status === 'Delivered') { %>bg-green-500<% } %>
+                                "><%= order.status %></span>
+                            </div>
+                            <div class="text-sm text-stone-600">
+                                Placed on <%= new Date(order.createdAt).toLocaleDateString() %>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } %>
+            <% } else { %>
+                <div class="bg-white p-12 rounded-2xl shadow-sm text-center border border-stone-100">
+                    <div class="text-6xl mb-4 opacity-30">📦</div>
+                    <h3 class="text-xl font-bold mb-2 text-stone-800">No orders yet</h3>
+                    <p class="text-stone-500 mb-6">You haven't placed any orders yet.</p>
+                    <a href="/" class="inline-block bg-amber-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-amber-800 transition">
+                        Browse Menu
+                    </a>
+                </div>
+            <% } %>
+        </div>
+        <% } %>
+    </main>
+
+    <script>
+        // tab switching on cart page
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.getAttribute('data-tab');
+                document.querySelectorAll('.tab-content, #cart-tab, #orders-tab').forEach(el => el.classList.add('hidden'));
+                document.getElementById(tab + '-tab').classList.remove('hidden');
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active', 'text-amber-900'));
+                btn.classList.add('tab-active', 'text-amber-900');
+            });
+        });
+    </script>
+</body>
+</html>

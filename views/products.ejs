@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Products - Full Stack Cafe</title>
+</head>
+<body class="bg-slate-50">
+    <nav class="bg-white p-4 shadow-sm flex justify-between items-center">
+        <h1 class="text-xl font-black text-indigo-600">FULL STACK CAFE</h1>
+        <div class="space-x-4 flex items-center">
+            <a href="/" class="text-slate-600 font-bold">Home</a>
+            <a href="/cart" class="text-slate-600 font-bold relative">
+                🛒 Cart
+                <% if (cart && cart.length > 0) { %>
+                    <span class="absolute -top-2 -right-3 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"><%= cart.length %></span>
+                <% } %>
+            </a>
+            <% if (user) { %>
+                <a href="/dashboard" class="font-bold text-slate-700">Hi, <%= user.name %></a>
+                <a href="/logout" class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-700 transition">Logout</a>
+            <% } else { %>
+                <a href="/login" class="text-slate-600 font-bold">Login</a>
+                <a href="/signup" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 transition">Join</a>
+            <% } %>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto p-6">
+        <h2 class="text-3xl font-bold mb-8">Our Full Menu</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <% items.forEach(item => { %>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition">
+                    <img src="<%= item.image %>" alt="<%= item.name %>" class="w-full h-48 object-cover bg-slate-200" style="image-rendering: auto;">
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="px-2 py-1 rounded text-[10px] font-bold <%= item.isVeg ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %>">
+                                <%= item.isVeg ? 'VEG' : 'NON-VEG' %>
+                            </span>
+                            <span class="font-bold text-lg">₹<%= item.price %></span>
+                        </div>
+                        <h3 class="text-xl font-bold mb-1"><%= item.name %></h3>
+                        <p class="text-slate-500 text-sm mb-4"><%= item.description %></p>
+                        
+                        <% if (item.inStock) { %>
+                            <form action="/cart/add" method="POST" class="w-full">
+                                <input type="hidden" name="itemId" value="<%= item.id %>">
+                                <input type="hidden" name="name" value="<%= item.name %>">
+                                <input type="hidden" name="price" value="<%= item.price %>">
+                                <button type="submit" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-indigo-600 transition">Add to Order</button>
+                            </form>
+                        <% } else { %>
+                            <button disabled class="w-full bg-slate-100 text-slate-400 py-3 rounded-xl font-bold">Out of Stock</button>
+                        <% } %>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </main>
+</body>
+</html>

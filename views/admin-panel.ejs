@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <title>Admin Panel - Full Stack Cafe</title>
+    <style>
+        h1, h2, h3, h4, .font-serif { font-family: 'Playfair Display', serif; }
+        body { font-family: 'Lato', sans-serif; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .nav-btn {
+            @apply px-4 py-2 rounded hover:bg-amber-800 transition block;
+        }
+        .nav-btn.active {
+            @apply bg-amber-800;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-amber-900 text-white p-6 shadow-lg overflow-y-auto">
+            <h1 class="text-2xl font-bold mb-8 font-serif">☕ Admin Panel</h1>
+            <nav class="space-y-4">
+                <button onclick="showSection('overview')" class="nav-btn active w-full text-left section-btn" data-section="overview">Overview</button>
+                <button onclick="showSection('orders')" class="nav-btn w-full text-left section-btn" data-section="orders">Manage Orders</button>
+                <button onclick="showSection('menu')" class="nav-btn w-full text-left section-btn" data-section="menu">Manage Menu</button>
+                <button onclick="showSection('users')" class="nav-btn w-full text-left section-btn" data-section="users">Manage Users</button>
+                <button onclick="showSection('delivered')" class="nav-btn w-full text-left section-btn" data-section="delivered">Orders Delivered</button>
+                <div class="my-4"></div>
+                <a href="/" class="nav-btn">Back to Menu</a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-8 overflow-auto">
+            <!-- Top Bar -->
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-bold text-amber-900 font-serif">Admin Dashboard</h2>
+                <div class="flex items-center gap-6">
+                    <span class="font-bold text-amber-900">Admin: <%= user.name %></span>
+                    <a href="/logout" class="bg-red-700 hover:bg-red-600 px-4 py-2 rounded text-sm font-bold text-white transition">Logout</a>
+                </div>
+            </div>
+
+            <!-- OVERVIEW SECTION -->
+            <div id="overview" class="section active">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-amber-600">
+                        <h3 class="text-gray-500 text-sm uppercase font-bold mb-1">Total Revenue</h3>
+                        <p class="text-3xl font-bold text-gray-800 font-serif">₹<%= orders.reduce((sum, order) => sum + order.total, 0) %></p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-600">
+                        <h3 class="text-gray-500 text-sm uppercase font-bold mb-1">Total Orders</h3>
+                        <p class="text-3xl font-bold text-gray-800 font-serif"><%= orders.length %></p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-600">
+                        <h3 class="text-gray-500 text-sm uppercase font-bold mb-1">Registered Users</h3>
+                        <p class="text-3xl font-bold text-gray-800 font-serif"><%= users.length %></p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow">
+                    <div class="bg-gray-200 px-6 py-4">
+                        <h3 class="font-bold font-serif text-lg">Recent Orders</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="px-6 py-3 font-bold">Order ID</th>
+                                    <th class="px-6 py-3 font-bold">Customer</th>
+                                    <th class="px-6 py-3 font-bold">Items</th>
+                                    <th class="px-6 py-3 font-bold">Total</th>
+                                    <th class="px-6 py-3 font-bold">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <% orders.slice().reverse().slice(0, 5).forEach(order => { %>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 font-mono text-xs"><%= order.id.substring(0, 8) %></td>
+                                        <td class="px-6 py-4"><%= order.userId ? order.userId.name : 'Unknown' %></td>
+                                        <td class="px-6 py-4"><%= order.items.map(i => `${i.quantity}x ${i.name}`).join(', ') %></td>
+                                        <td class="px-6 py-4 font-bold">₹<%= order.total %></td>
+                                        <td class="px-6 py-4">
+                                            <span class="px-3 py-1 rounded-full text-white text-xs font-bold <% if (order.status === 'Pending') { %>bg-yellow-500<% } else if (order.status === 'Preparing') { %>bg-blue-500<% } else if (order.status === 'Preparing') { %>bg-blue-500<% } else if (order.status === 'Completed') { %>bg-purple-500<% } else if (order.status === 'Delivered') { %>bg-green-500<% } %>">
+                                                <%= order.status %>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ORDERS SECTION -->
+            <div id="orders" class="section">
+                <h3 class="text-3xl font-bold mb-8 text-amber-900 font-serif">Orders Management</h3>
+                <% const activeOrders = orders.filter(order => order.status !== 'Delivered').slice().reverse(); %>
+                <% if (activeOrders && activeOrders.length > 0) { %>
+                    <div class="bg-white rounded-lg shadow overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="bg-gray-200 border-b">
+                                    <th class="px-6 py-3 text-left text-sm font-bold">Order ID</th>
+                                    <th class="px-6 py-3 text-left text-sm font-bold">Customer</th>
+                                    <th class="px-6 py-3 text-left text-sm font-bold">Items</th>
+                                    <th class="px-6 py-3 text-left text-sm font-bold">Total</th>
+                                    <th class="px-6 py-3 text-left text-sm font-bold">Current Status</th>
+                                    <th class="px-6 py-3 text-left text-sm font-bold">Change Status</th>
+                                    <th class="px-6 py-3 text-left text-sm font-bold">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <% activeOrders.forEach(order => { %>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 text-sm font-mono"><%= order.id.substring(0, 8) %></td>
+                                        <td class="px-6 py-4 text-sm">
+                                            <%= order.userId ? order.userId.name + ' (' + order.userId.email + ')' : 'Unknown User' %>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm">
+                                            <% if (order.items && order.items.length > 0) { %>
+                                                <ul class="list-disc list-inside">
+                                                    <% order.items.forEach(item => { %>
+                                                        <li><%= item.name %> (x<%= item.quantity %>)</li>
+                                                    <% }) %>
+                                                </ul>
+                                            <% } %>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm font-bold">₹<%= order.total %></td>
+                                        <td class="px-6 py-4 text-sm">
+                                            <span class="px-3 py-1 rounded-full text-white text-xs font-bold
+                                                <% if (order.status === 'Pending') { %>bg-yellow-500<% } %>
+                                                <% if (order.status === 'Preparing') { %>bg-blue-500<% } %>
+                                                <% if (order.status === 'Completed') { %>bg-purple-500<% } %>
+                                                <% if (order.status === 'Delivered') { %>bg-green-500<% } %>
+                                            ">
+                                                <%= order.status %>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm">
+                                            <% if (order.status === 'Delivered') { %>
+                                                <span class="px-3 py-1 bg-gray-300 text-gray-600 text-xs rounded font-bold">Locked - Delivered</span>
+                                            <% } else { %>
+                                                <form action="/admin/orders/<%= order.id %>/status" method="POST" style="display: inline;">
+                                                    <select name="status" class="px-2 py-1 text-sm border border-gray-300 rounded">
+                                                        <option value="" selected disabled>Change status...</option>
+                                                        <option value="Pending" <% if (order.status === 'Pending') { %>selected<% } %>>Pending</option>
+                                                        <option value="Preparing" <% if (order.status === 'Preparing') { %>selected<% } %>>Preparing</option>
+                                                        <option value="Completed" <% if (order.status === 'Completed') { %>selected<% } %>>Completed</option>
+                                                        <option value="Delivered" <% if (order.status === 'Delivered') { %>selected<% } %>>Delivered</option>
+                                                    </select>
+                                                    <button type="submit" class="px-3 py-1 bg-amber-700 text-white text-sm rounded hover:bg-amber-800 transition">Update</button>
+                                                </form>
+                                            <% } %>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">
+                                            <%= new Date(order.createdAt).toLocaleDateString() %>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% } else { %>
+                    <div class="bg-white p-8 rounded-lg shadow text-center">
+                        <p class="text-gray-500">No active orders found.</p>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- MENU SECTION -->
+            <div id="menu" class="section">
+                <h3 class="text-3xl font-bold mb-8 text-amber-900 font-serif">Menu Management</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Add Item Form -->
+                    <div class="md:col-span-1">
+                        <div class="bg-white rounded-xl shadow-sm p-6 border-t-4 border-amber-600">
+                            <h3 class="font-bold font-serif text-xl mb-4 text-stone-800">Add Menu Item</h3>
+                            <form action="/admin/items/add" method="POST" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-bold text-stone-600 mb-1">Item Name</label>
+                                    <input type="text" name="name" required class="w-full border border-stone-300 rounded p-2 focus:outline-none focus:border-amber-600">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-stone-600 mb-1">Price (₹)</label>
+                                    <input type="number" name="price" required class="w-full border border-stone-300 rounded p-2 focus:outline-none focus:border-amber-600">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-stone-600 mb-1">Description</label>
+                                    <textarea name="description" rows="2" required class="w-full border border-stone-300 rounded p-2 focus:outline-none focus:border-amber-600">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" name="isVeg" id="isVeg" class="w-4 h-4 text-amber-600">
+                                    <label for="isVeg" class="text-sm font-bold text-stone-600">Is Vegetarian?</label>
+                                </div>
+                                <button type="submit" class="w-full bg-amber-900 text-white font-bold py-3 rounded hover:bg-amber-800 transition">Add Item</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Existing Items List -->
+                    <div class="md:col-span-2">
+                        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                            <div class="bg-stone-800 text-white px-6 py-4">
+                                <h3 class="font-bold font-serif text-lg">Manage Menu</h3>
+                            </div>
+                            <div class="divide-y divide-stone-100">
+                                <% items.forEach(item => { %>
+                                    <div class="p-4 flex justify-between items-center hover:bg-stone-50">
+                                        <div>
+                                            <p class="font-bold text-stone-800"><%= item.name %></p>
+                                            <p class="text-xs text-stone-500">₹<%= item.price %> • <%= item.inStock ? 'In Stock' : 'Out of Stock' %></p>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <button onclick="openEditModal('<%= item.id %>', '<%= item.name %>', '<%= item.price %>', '<%= item.description %>', <%= item.isVeg %>)" class="p-2 rounded hover:bg-stone-200 transition text-stone-600" title="Edit Item">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                                </svg>
+                                            </button>
+                                            <div class="flex gap-0 border border-stone-300 rounded overflow-hidden">
+                                                <form action="/admin/items/<%= item.id %>/stock" method="POST" style="display: inline;">
+                                                    <button type="submit" name="inStock" value="true" class="px-3 py-1 text-xs font-bold transition-colors <%= item.inStock ? 'bg-green-600 text-white' : 'bg-white text-stone-600 hover:bg-green-50' %>">
+                                                        In Stock
+                                                    </button>
+                                                </form>
+                                                <form action="/admin/items/<%= item.id %>/stock" method="POST" style="display: inline;">
+                                                    <button type="submit" name="inStock" value="false" class="px-3 py-1 text-xs font-bold transition-colors border-l border-stone-300 <%= !item.inStock ? 'bg-red-600 text-white' : 'bg-white text-stone-600 hover:bg-red-50' %>">
+                                                        Out of Stock
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- USERS SECTION -->
+            <div id="users" class="section">
+                <h3 class="text-3xl font-bold mb-8 text-amber-900 font-serif">Registered Users</h3>
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                    <div class="bg-stone-800 text-white px-6 py-4 flex justify-between items-center">
+                        <h3 class="font-bold font-serif text-lg">All Users</h3>
+                        <span class="bg-stone-700 text-white text-sm font-bold px-3 py-1 rounded-full"><%= users.length %> Total</span>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex flex-wrap gap-2">
+                            <% users.forEach(u => { %>
+                                <div class="bg-stone-50 border border-stone-200 rounded-lg px-4 py-2 flex items-center gap-3 w-full">
+                                    <div class="w-8 h-8 bg-stone-200 rounded-full flex items-center justify-center font-bold text-stone-600 flex-shrink-0">
+                                        <%= u.name.charAt(0).toUpperCase() %>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-sm text-stone-800"><%= u.name %></p>
+                                        <p class="text-xs text-stone-500"><%= u.email %> • <span class="font-bold"><%= u.role %></span></p>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DELIVERED ORDERS SECTION -->
+            <div id="delivered" class="section">
+                <h3 class="text-3xl font-bold mb-8 text-amber-900 font-serif">Delivered Orders</h3>
+                <% const deliveredOrders = orders.filter(o => o.status === 'Delivered').slice().reverse(); %>
+                <% if (deliveredOrders && deliveredOrders.length > 0) { %>
+                    <div class="bg-white rounded-lg shadow overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="bg-gray-200 border-b">
+                                    <th class="px-6 py-3 text-left text-sm font-bold">Order ID</th>
+                                    <th class="px-6 py-3 text-left text-sm font-bold">Customer</th>
+                                    <th class="px-6 py-3 text-left text-sm font-bold">Items</th>
+                                    <th class="px-6 py-3 text-left text-sm font-bold">Total</th>
+                                    <th class="px-6 py-3 text-left text-sm font-bold">Status</th>
+                                    <th class="px-6 py-3 text-left text-sm font-bold">Delivered Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <% deliveredOrders.forEach(order => { %>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 text-sm font-mono"><%= order.id.substring(0, 8) %></td>
+                                        <td class="px-6 py-4 text-sm">
+                                            <%= order.userId ? order.userId.name + ' (' + order.userId.email + ')' : 'Unknown User' %>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm">
+                                            <% if (order.items && order.items.length > 0) { %>
+                                                <ul class="list-disc list-inside">
+                                                    <% order.items.forEach(item => { %>
+                                                        <li><%= item.name %> (x<%= item.quantity %>)</li>
+                                                    <% }) %>
+                                                </ul>
+                                            <% } %>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm font-bold">₹<%= order.total %></td>
+                                        <td class="px-6 py-4 text-sm">
+                                            <span class="px-3 py-1 rounded-full text-white text-xs font-bold bg-green-500">
+                                                <%= order.status %>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm text-gray-500">
+                                            <%= new Date(order.updatedAt || order.createdAt).toLocaleDateString() %>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% } else { %>
+                    <div class="bg-white p-8 rounded-lg shadow text-center">
+                        <p class="text-gray-500">No delivered orders yet.</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Item Modal -->
+    <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-auto p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-stone-800 font-serif">Edit Menu Item</h2>
+                <button type="button" onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+            </div>
+            <form id="editForm" method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-stone-600 mb-1">Item Name</label>
+                    <input type="text" id="editName" name="name" required class="w-full border border-stone-300 rounded p-2 focus:outline-none focus:border-amber-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-stone-600 mb-1">Price (₹)</label>
+                    <input type="number" id="editPrice" name="price" step="0.01" required class="w-full border border-stone-300 rounded p-2 focus:outline-none focus:border-amber-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-stone-600 mb-1">Description</label>
+                    <textarea id="editDescription" name="description" rows="3" required class="w-full border border-stone-300 rounded p-2 focus:outline-none focus:border-amber-600"></textarea>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="editIsVeg" name="isVeg" class="w-4 h-4 text-amber-600">
+                    <label for="editIsVeg" class="text-sm font-bold text-stone-600">Is Vegetarian?</label>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="flex-1 bg-amber-900 text-white font-bold py-2 px-4 rounded hover:bg-amber-800 transition">Update Item</button>
+                    <button type="button" onclick="closeEditModal()" class="flex-1 bg-stone-400 text-white font-bold py-2 px-4 rounded hover:bg-stone-500 transition">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all nav buttons
+            document.querySelectorAll('.section-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Mark button as active
+            document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+        }
+
+        let currentEditItemId = null;
+
+        function openEditModal(itemId, name, price, description, isVeg) {
+            currentEditItemId = itemId;
+            
+            // Populate form fields
+            document.getElementById('editName').value = name;
+            document.getElementById('editPrice').value = price;
+            document.getElementById('editDescription').value = description;
+            document.getElementById('editIsVeg').checked = isVeg;
+            
+            // Set form action to the correct endpoint
+            document.getElementById('editForm').action = `/admin/items/edit/${itemId}`;
+            
+            // Show modal
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+            currentEditItemId = null;
+        }
+
+        // Close modal when clicking outside of it
+        document.getElementById('editModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeEditModal();
+            }
+        });
+
+        // Ensure form submits properly
+        document.getElementById('editForm').addEventListener('submit', function(event) {
+            // Form will submit normally to the action URL
+        });
+    </script>
+</body>
+</html>
+

@@ -25,11 +25,11 @@
         <div class="w-64 bg-amber-900 text-white p-6 shadow-lg overflow-y-auto">
             <h1 class="text-2xl font-bold mb-8 font-serif">☕ Admin Panel</h1>
             <nav class="space-y-4">
-                <button onclick="showSection('overview')" class="nav-btn active w-full text-left section-btn" data-section="overview">Overview</button>
-                <button onclick="showSection('orders')" class="nav-btn w-full text-left section-btn" data-section="orders">Manage Orders</button>
-                <button onclick="showSection('menu')" class="nav-btn w-full text-left section-btn" data-section="menu">Manage Menu</button>
-                <button onclick="showSection('users')" class="nav-btn w-full text-left section-btn" data-section="users">Manage Users</button>
-                <button onclick="showSection('delivered')" class="nav-btn w-full text-left section-btn" data-section="delivered">Orders Delivered</button>
+<button onclick="showSection('overview')" class="nav-btn <%= section === 'overview' ? 'active' : '' %> w-full text-left section-btn" data-section="overview">Overview</button>
+                <button onclick="showSection('orders')" class="nav-btn <%= section === 'orders' ? 'active' : '' %> w-full text-left section-btn" data-section="orders">Manage Orders
+                <button onclick="showSection('menu')" class="nav-btn <%= section === 'menu' ? 'active' : '' %> w-full text-left section-btn" data-section="menu">Manage Menu
+                <button onclick="showSection('users')" class="nav-btn <%= section === 'users' ? 'active' : '' %> w-full text-left section-btn" data-section="users">Manage Users
+                <button onclick="showSection('delivered')" class="nav-btn <%= section === 'delivered' ? 'active' : '' %> w-full text-left section-btn" data-section="delivered">Orders Delivered
                 <div class="my-4"></div>
                 <a href="/" class="nav-btn">Back to Menu</a>
             </nav>
@@ -194,6 +194,7 @@
                                 <div>
                                     <label class="block text-sm font-bold text-stone-600 mb-1">Description</label>
                                     <textarea name="description" rows="2" required class="w-full border border-stone-300 rounded p-2 focus:outline-none focus:border-amber-600">
+                                </textarea>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <input type="checkbox" name="isVeg" id="isVeg" class="w-4 h-4 text-amber-600">
@@ -218,9 +219,9 @@
                                             <p class="text-xs text-stone-500">₹<%= item.price %> • <%= item.inStock ? 'In Stock' : 'Out of Stock' %></p>
                                         </div>
                                         <div class="flex items-center gap-2">
-                                            <button onclick="openEditModal('<%= item.id %>', '<%= item.name %>', '<%= item.price %>', '<%= item.description %>', <%= item.isVeg %>)" class="p-2 rounded hover:bg-stone-200 transition text-stone-600" title="Edit Item">
+                                            <button class="edit-btn p-2 rounded hover:bg-stone-200 transition text-stone-600" title="Edit Item" data-id="<%= item.id %>" data-name="<%= item.name %>" data-price="<%= item.price %>" data-description="<%= (item.description || '').replace(/"/g, '"') %>" data-isveg="<%= item.isVeg %>">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 01 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                                                 </svg>
                                             </button>
                                             <div class="flex gap-0 border border-stone-300 rounded overflow-hidden">
@@ -244,7 +245,8 @@
                 </div>
             </div>
 
-            <!-- USERS SECTION -->
+            <!-- Users & Delivered sections same as before -->
+            <!-- ... USERS SECTION ... -->
             <div id="users" class="section">
                 <h3 class="text-3xl font-bold mb-8 text-amber-900 font-serif">Registered Users</h3>
                 <div class="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -360,20 +362,9 @@
 
     <script>
         function showSection(sectionId) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Remove active class from all nav buttons
-            document.querySelectorAll('.section-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Show selected section
+            document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+            document.querySelectorAll('.section-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
-            
-            // Mark button as active
             document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
         }
 
@@ -381,17 +372,11 @@
 
         function openEditModal(itemId, name, price, description, isVeg) {
             currentEditItemId = itemId;
-            
-            // Populate form fields
-            document.getElementById('editName').value = name;
+            document.getElementById('editName').value = name.replace(/"/g, '"');
             document.getElementById('editPrice').value = price;
-            document.getElementById('editDescription').value = description;
-            document.getElementById('editIsVeg').checked = isVeg;
-            
-            // Set form action to the correct endpoint
+            document.getElementById('editDescription').value = description.replace(/"/g, '"').replace(/</g, '<').replace(/>/g, '>');
+            document.getElementById('editIsVeg').checked = isVeg === 'true' || isVeg === true;
             document.getElementById('editForm').action = `/admin/items/edit/${itemId}`;
-            
-            // Show modal
             document.getElementById('editModal').classList.remove('hidden');
         }
 
@@ -400,18 +385,24 @@
             currentEditItemId = null;
         }
 
-        // Close modal when clicking outside of it
-        document.getElementById('editModal').addEventListener('click', function(event) {
-            if (event.target === this) {
-                closeEditModal();
-            }
+        // Event delegation for edit buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.addEventListener('click', function(e) {
+                if (e.target.closest('.edit-btn')) {
+                    const btn = e.target.closest('.edit-btn');
+                    const id = btn.dataset.id;
+                    const name = btn.dataset.name;
+                    const price = btn.dataset.price;
+                    const description = btn.dataset.description;
+                    const isVeg = btn.dataset.isveg;
+                    openEditModal(id, name, price, description, isVeg);
+                }
+            });
         });
 
-        // Ensure form submits properly
-        document.getElementById('editForm').addEventListener('submit', function(event) {
-            // Form will submit normally to the action URL
-        });
+        document.getElementById('editModal').onclick = function(e) {
+            if (e.target === this) closeEditModal();
+        };
     </script>
 </body>
 </html>
-

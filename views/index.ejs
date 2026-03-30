@@ -157,18 +157,29 @@
                         </div>
                         <p class="text-stone-500 text-sm mb-6 flex-1 leading-relaxed"><%= item.description %></p>
                         
-                        <form action="/cart/add" method="POST" class="mt-auto">
-                            <input type="hidden" name="itemId" value="<%= item.id %>">
-                            <input type="hidden" name="name" value="<%= item.name %>">
-                            <input type="hidden" name="price" value="<%= item.price %>">
-                            
-                            <button type="submit" class="w-full bg-stone-800 text-white py-3 rounded-lg font-bold hover:bg-amber-900 transition flex items-center justify-center gap-2 group-hover:shadow-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                                </svg>
-                                Add to Order
-                            </button>
-                        </form>
+
+<% if (item.inStock) { %>
+    <form action="/cart/add" method="POST" class="mt-auto">
+        <input type="hidden" name="itemId" value="<%= item.id %>">
+        <input type="hidden" name="name" value="<%= item.name %>">
+        <input type="hidden" name="price" value="<%= item.price %>">
+        
+        <button type="submit" class="w-full bg-stone-800 text-white py-3 rounded-lg font-bold hover:bg-amber-900 transition flex items-center justify-center gap-2 group-hover:shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Add to Order
+        </button>
+    </form>
+<% } else { %>
+    <button disabled class="w-full bg-stone-400 text-stone-600 py-3 rounded-lg font-bold cursor-not-allowed opacity-50 flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Out of Stock
+    </button>
+<% } %>
+
                     </div>
                 </div>
             <% }) %>

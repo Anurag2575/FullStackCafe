@@ -2,14 +2,20 @@ const Item = require('../models/Item');
 const User = require('../models/User');
 const Order = require('../models/Order');
 
+// Helper to determine current section
+const getCurrentSection = (req) => {
+  return req.query.section || req.body.section || req.headers.referer?.split('section=')[1]?.split('&')[0] || 'overview';
+};
+
 // GET: Admin Panel (formerly dashboard)
 exports.getAdminDashboard = async (req, res) => {
     const users = await User.find();
     const orders = await Order.find({}).populate('userId').sort({ createdAt: -1 });
     const items = await Item.find();
-    const section = req.query.section || 'overview';
+    const section = getCurrentSection(req);
     res.render('admin-panel', { users, orders, items, user: req.user, section });
 };
+
 
 // POST: Add New Item
 exports.addItem = async (req, res) => {
@@ -21,8 +27,10 @@ exports.addItem = async (req, res) => {
         isVeg: isVeg === 'on',
         image: req.body.image
     });
-    res.redirect('/admin/panel?section=menu');
+    const section = getCurrentSection(req);
+    res.redirect(`/admin/panel?section=${section}`);
 };
+
 
 // POST: Update Item Stock Status
 exports.updateItemStock = async (req, res) => {
@@ -34,18 +42,21 @@ exports.updateItemStock = async (req, res) => {
         item.inStock = inStock === 'true';
         await item.save();
     }
-    res.redirect('/admin/panel?section=menu');
+    const section = getCurrentSection(req);
+    res.redirect(`/admin/panel?section=${section}`);
 };
+
 
 // GET: Edit Item Page
 exports.getEditItem = async (req, res) => {
     const item = await Item.findById(req.params.id);
     if (item) {
         res.render('edit-item', { item, user: req.user });
-    } else {
-        res.redirect('/admin/panel');
+        const section = getCurrentSection(req);
+        res.redirect(`/admin/panel?section=${section}`);
     }
 };
+
 
 // POST: Update Item
 exports.updateItem = async (req, res) => {
@@ -61,8 +72,10 @@ exports.updateItem = async (req, res) => {
         if (req.body.image) item.image = req.body.image;
         await item.save();
     }
-    res.redirect('/admin/panel?section=menu');
+    const section = getCurrentSection(req);
+    res.redirect(`/admin/panel?section=${section}`);
 };
+
 
 // POST: Update Order Status
 exports.updateOrderStatus = async (req, res) => {
@@ -70,15 +83,16 @@ exports.updateOrderStatus = async (req, res) => {
     const { status } = req.body;
     const validStatuses = ['Pending', 'Preparing', 'Completed', 'Delivered'];
     
+    const section = getCurrentSection(req);
     if (!validStatuses.includes(status)) {
-        return res.redirect('/admin/panel?section=orders');
+        return res.redirect(`/admin/panel?section=${section}`);
     }
     
     const order = await Order.findById(orderId);
     if (order) {
         // Prevent changing status if order is already delivered
         if (order.status === 'Delivered') {
-            return res.redirect('/admin/panel?section=orders');
+            return res.redirect(`/admin/panel?section=${section}`);
         }
         
         order.status = status;
@@ -86,6 +100,7 @@ exports.updateOrderStatus = async (req, res) => {
         await order.save();
     }
     
-    res.redirect('/admin/panel?section=orders');
+    res.redirect(`/admin/panel?section=${section}`);
 };
+
 

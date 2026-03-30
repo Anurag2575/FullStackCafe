@@ -9,11 +9,23 @@ const getCurrentSection = (req) => {
 
 // GET: Admin Panel (formerly dashboard)
 exports.getAdminDashboard = async (req, res) => {
-    const users = await User.find();
+    const users = await User.find().sort({ createdAt: -1 });
     const orders = await Order.find({}).populate('userId').sort({ createdAt: -1 });
     const items = await Item.find();
     const section = getCurrentSection(req);
     res.render('admin-panel', { users, orders, items, user: req.user, section });
+};
+
+// POST: Toggle User Active Status (Student only)
+exports.toggleUserActive = async (req, res) => {
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (user && user.role === 'Student') {
+        user.isActive = !user.isActive;
+        await user.save();
+    }
+    const section = getCurrentSection(req) || 'users';
+    res.redirect(`/admin/panel?section=${section}`);
 };
 
 

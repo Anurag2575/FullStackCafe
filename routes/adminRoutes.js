@@ -17,5 +17,6 @@ router.post('/items/:id/stock', protect, adminOnly, adminController.updateItemSt
 router.get('/items/edit/:id', protect, adminOnly, adminController.getEditItem);
 router.post('/items/edit/:id', protect, adminOnly, adminController.updateItem);
 router.post('/orders/:orderId/status', protect, adminOnly, adminController.updateOrderStatus);
+router.post('/users/:id/toggle-active', protect, adminOnly, adminController.toggleUserActive);
 
 module.exports = router;

@@ -11,12 +11,14 @@
         body { font-family: 'Lato', sans-serif; }
         .section { display: none; }
         .section.active { display: block; }
-        .nav-btn {
-            @apply px-4 py-2 rounded hover:bg-amber-800 transition block;
+        .nav-btn { 
+            padding: 0.5rem 1rem; 
+            border-radius: 0.25rem; 
+            transition: all 0.2s; 
+            display: block; 
         }
-        .nav-btn.active {
-            @apply bg-amber-800;
-        }
+        .nav-btn:hover { background-color: #92400e; }
+        .nav-btn.active { background-color: #92400e; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">

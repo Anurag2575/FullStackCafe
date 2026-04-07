@@ -3,16 +3,24 @@ const Order = require('../models/Order');
 
 // POST: Add Item to Cart
 exports.addToCart = (req, res) => {
-    const { itemId, name, price } = req.body;
+    const { itemId, name, price, description } = req.body;
     if (!req.session.cart) req.session.cart = [];
     
     const existingItem = req.session.cart.find(item => item.itemId === itemId);
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
-        req.session.cart.push({ itemId, name, price, quantity: 1 });
+        req.session.cart.push({ itemId, name, price: parseFloat(price), description, quantity: 1 });
     }
-    res.redirect(req.get('referer') || '/');
+    
+    if (req.xhr) {
+        req.session.save(() => {
+            const item = req.session.cart.find(item => item.itemId === itemId);
+            res.json({ success: true, item: { itemId: item.itemId, quantity: item.quantity } });
+        });
+    } else {
+        res.redirect('/#menu');
+    }
 };
 
 // GET: View Cart (with optional orders tab)
@@ -25,7 +33,7 @@ exports.getCart = async (req, res) => {
     let pastOrders = [];
     if (req.session && req.session.userId) {
         const userId = req.session.userId;
-        const allOrders = await Order.find({ userId }).sort({ createdAt: -1 });
+        const allOrders = await Order.find({ userId }).populate('userId').sort({ createdAt: -1 });
         activeOrders = allOrders.filter(o => o.status === 'Pending' || o.status === 'Preparing');
         pastOrders = allOrders.filter(o => o.status === 'Completed' || o.status === 'Delivered');
     }
@@ -43,7 +51,13 @@ exports.increaseQuantity = (req, res) => {
         cartItem.quantity += 1;
     }
     
-    res.redirect(req.get('referer') || '/');
+    if (req.xhr) {
+        req.session.save(() => {
+            res.json({ success: true, item: { itemId, quantity: cartItem ? cartItem.quantity : 0 }, message: 'Quantity increased!' });
+        });
+    } else {
+        res.redirect(req.get('referer') || '/');
+    }
 };
 
 // POST: Decrease Item Quantity
@@ -58,7 +72,13 @@ exports.decreaseQuantity = (req, res) => {
         }
     }
     
-    res.redirect(req.get('referer') || '/');
+    if (req.xhr) {
+        req.session.save(() => {
+            res.json({ success: true, item: { itemId, quantity: cartItem ? cartItem.quantity : 0 }, message: 'Quantity decreased!' });
+        });
+    } else {
+        res.redirect(req.get('referer') || '/');
+    }
 };
 
 // POST: Remove Item from Cart
@@ -67,5 +87,12 @@ exports.removeFromCart = (req, res) => {
     if (req.session.cart) {
         req.session.cart = req.session.cart.filter(item => item.itemId !== itemId);
     }
-    res.redirect(req.get('referer') || '/');
+    
+    if (req.xhr) {
+        req.session.save(() => {
+            res.json({ success: true, message: 'Item removed from cart!' });
+        });
+    } else {
+        res.redirect(req.get('referer') || '/');
+    }
 };

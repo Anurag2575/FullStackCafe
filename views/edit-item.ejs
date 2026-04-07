@@ -24,9 +24,10 @@
                 <label for="description">Description</label>
                 <textarea id="description" name="description" required><%= item.description %></textarea>
             </div>
-            <div class="form-group">
-                <label for="image">Image (Leave blank to keep current)</label>
-                <input type="file" id="image" name="image">
+<div class="form-group">
+                <label for="image">Item Image <%= item.image ? '(Current: ' + item.image + ') - Leave blank to keep' : '(No image - upload new)' %></label>
+                <input type="file" id="image" name="image" accept="image/*">
+                <p class="help-text">JPG, PNG (5MB max) - replaces current image</p>
             </div>
             <div class="form-group">
                 <label><input type="checkbox" name="isVeg" <%= item.isVeg ? 'checked' : '' %>> Vegetarian</label>

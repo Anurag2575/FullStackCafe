@@ -1,10 +1,22 @@
-<script src="https://cdn.tailwindcss.com"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/style.css">
+    <title>Dashboard - Full Stack Cafe</title>
+</head>
 <body class="bg-slate-50">
     <!-- Navigation Bar -->
     <nav class="bg-white shadow-sm p-4 flex justify-between items-center">
         <h1 class="text-xl font-black text-indigo-600">FULL STACK CAFE</h1>
         <div class="space-x-4 flex items-center">
             <a href="/" class="text-slate-600 font-bold">🏠 Menu</a>
+            <% if (user && user.role === 'Admin') { %>
+                <a href="/admin/panel" class="bg-amber-100 text-amber-800 px-4 py-2 rounded-lg font-bold text-sm hover:bg-amber-200 transition">Admin Panel</a>
+            <% } %>
+            <span class="font-bold text-stone-700">Hi, <%= user.name %></span>
             <a href="/logout" class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-700 transition">Logout</a>
         </div>
     </nav>

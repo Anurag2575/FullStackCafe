@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
     <title>My Orders - Full Stack Cafe</title>
     <style>
         h1, h2, h3, h4, .font-serif { font-family: 'Playfair Display', serif; }
@@ -20,6 +21,9 @@
         </h1>
         <div class="space-x-6 flex items-center">
             <a href="/" class="text-stone-600 hover:text-amber-800 transition font-medium">Menu</a>
+            <% if (user && user.role === 'Admin') { %>
+                <a href="/admin/panel" class="bg-amber-100 text-amber-800 px-4 py-2 rounded-lg font-bold text-sm hover:bg-amber-200 transition">Admin Panel</a>
+            <% } %>
             <a href="/dashboard" class="font-bold text-stone-700 hover:text-amber-800">Hi, <%= user.name %></a>
             <a href="/logout" class="text-red-700 font-bold hover:text-red-800 text-sm uppercase tracking-wide">Logout</a>
         </div>
@@ -75,7 +79,7 @@
 
                             <div class="flex justify-between items-center bg-amber-50 border border-amber-200 rounded-lg p-4">
                                 <span class="font-bold text-amber-900">Total Amount:</span>
-                                <span class="text-2xl font-bold text-amber-900">₹<%= order.totalAmount %></span>
+                                <span class="text-2xl font-bold text-amber-900">₹<%= Number(order.total || 0).toFixed(2) %></span>
                             </div>
 
                             <% if (order.status === 'Pending') { %>
@@ -144,8 +148,8 @@
 
                             <div class="flex justify-between items-center bg-stone-100 border border-stone-300 rounded-lg p-4">
                                 <span class="font-bold text-stone-700">Total Amount:</span>
-                                <span class="text-2xl font-bold text-stone-800">₹<%= order.totalAmount %></span>
-                            </div>
+                                <span class="text-2xl font-bold text-stone-800">₹<%= Number(order.total || 0).toFixed(2) %></span>
+                        </div>
                         </div>
                     <% }) %>
                 </div>

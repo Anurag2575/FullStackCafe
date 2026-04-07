@@ -12,10 +12,10 @@ router.get('/panel', protect, adminOnly, adminController.getAdminDashboard);
 router.get('/', protect, adminOnly, (req, res) => res.redirect('/admin/panel'));
 
 // admin actions
-router.post('/items/add', protect, adminOnly, adminController.addItem);
+router.post('/items/add', protect, adminOnly, require('../middleware/uploadMiddleware'), adminController.addItem);
 router.post('/items/:id/stock', protect, adminOnly, adminController.updateItemStock);
 router.get('/items/edit/:id', protect, adminOnly, adminController.getEditItem);
-router.post('/items/edit/:id', protect, adminOnly, adminController.updateItem);
+router.post('/items/edit/:id', protect, adminOnly, require('../middleware/uploadMiddleware'), adminController.updateItem);
 router.post('/orders/:orderId/status', protect, adminOnly, adminController.updateOrderStatus);
 router.post('/users/:id/toggle-active', protect, adminOnly, adminController.toggleUserActive);
 

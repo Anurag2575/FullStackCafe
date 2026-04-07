@@ -15,7 +15,13 @@ exports.placeOrder = async (req, res) => {
         return res.redirect('/login');
     }
 
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const total = cart.reduce((sum, item) => sum + (parseFloat(item.price || 0) * (item.quantity || 0)), 0);
+    console.log('Calculated total:', total, 'isNaN:', isNaN(total));
+
+    if (isNaN(total) || total <= 0) {
+        req.session.message = 'Invalid order total. Please check your cart.';
+        return res.redirect('/cart');
+    }
 
     // Create order
     Order.create({
@@ -24,17 +30,17 @@ exports.placeOrder = async (req, res) => {
         total: total,
         status: 'Pending'
     }).then(order => {
-        console.log('Order created successfully:', order._id);
+        console.log('Order created successfully:', order._id, 'total:', order.total);
+        // Clear cart, set flash message, and redirect to home/menu
+        req.session.cart = [];
+        req.session.message = 'Order confirmed! Thank you for your purchase.';
+        console.log('placeOrder: redirecting to /');
+        res.redirect('/');
     }).catch(err => {
         console.error('Error creating order:', err);
         req.session.message = 'Error placing order. Please try again.';
+        res.redirect('/cart');
     });
-
-    // Clear cart, set flash message, and redirect to home/menu
-    req.session.cart = [];
-    req.session.message = 'Order confirmed! Thank you for your purchase.';
-    console.log('placeOrder: redirecting to /');
-    res.redirect('/');
 };
 
 // GET: Confirmation page after placing an order

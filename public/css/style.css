@@ -1,0 +1,4 @@
+/* Global font style for the entire website */
+* {
+    font-family: 'Lato', sans-serif !important;
+}

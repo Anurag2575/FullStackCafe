@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
     <title>Admin Panel - Full Stack Cafe</title>
     <style>
         body { font-family: 'Lato', sans-serif; }
@@ -61,7 +62,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                     <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-amber-600">
                         <h3 class="text-gray-500 text-sm uppercase font-bold mb-1">Total Revenue</h3>
-                        <p class="text-3xl font-bold text-gray-800 font-serif">₹<%= orders.reduce((sum, order) => sum + order.total, 0) %></p>
+                        <p class="text-3xl font-bold text-gray-800 font-serif">₹<%= orders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0) %></p>
                     </div>
                     <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-600">
                         <h3 class="text-gray-500 text-sm uppercase font-bold mb-1">Total Orders</h3>
@@ -89,12 +90,12 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y">
-                                <% orders.slice().reverse().slice(0, 5).forEach(order => { %>
+                                <% orders.filter(o => o.status !== 'Delivered').slice(0, 5).forEach(order => { %>
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 font-mono text-xs"><%= order.id.substring(0, 8) %></td>
                                         <td class="px-6 py-4"><%= order.userId ? order.userId.name : 'Unknown' %></td>
                                         <td class="px-6 py-4"><%= order.items.map(i => `${i.quantity}x ${i.name}`).join(', ') %></td>
-                                        <td class="px-6 py-4 font-bold">₹<%= order.total %></td>
+                                        <td class="px-6 py-4 font-bold">₹<%= parseFloat(order.total || 0).toFixed(2) %></td>
                                         <td class="px-6 py-4">
                                             <span class="px-3 py-1 rounded-full text-white text-xs font-bold <% if (order.status === 'Pending') { %>bg-yellow-500<% } else if (order.status === 'Preparing') { %>bg-blue-500<% } else if (order.status === 'Preparing') { %>bg-blue-500<% } else if (order.status === 'Completed') { %>bg-purple-500<% } else if (order.status === 'Delivered') { %>bg-green-500<% } %>">
                                                 <%= order.status %>
@@ -126,7 +127,7 @@
                                     <th class="px-6 py-3 text-left text-sm font-bold">Date</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y">
+                            <tbody>
                                 <% activeOrders.forEach(order => { %>
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 text-sm font-mono"><%= order.id.substring(0, 8) %></td>
@@ -142,7 +143,7 @@
                                                 </ul>
                                             <% } %>
                                         </td>
-                                        <td class="px-6 py-4 text-sm font-bold">₹<%= order.total %></td>
+                                        <td class="px-6 py-4 text-sm font-bold">₹<%= parseFloat(order.total) || 0 %></td>
                                         <td class="px-6 py-4 text-sm">
                                             <span class="px-3 py-1 rounded-full text-white text-xs font-bold
                                                 <% if (order.status === 'Pending') { %>bg-yellow-500<% } %>
@@ -158,14 +159,13 @@
                                                 <span class="px-3 py-1 bg-gray-300 text-gray-600 text-xs rounded font-bold">Locked - Delivered</span>
                                             <% } else { %>
                                                 <form action="/admin/orders/<%= order.id %>/status" method="POST" style="display: inline;">
-                                                    <select name="status" class="px-2 py-1 text-sm border border-gray-300 rounded">
-                                                        <option value="" selected disabled>Change status...</option>
+                                                    <select name="status" onchange="this.form.submit()" class="px-2 py-1 text-sm border border-gray-300 rounded">
+                                                        <option value="" disabled>Change status...</option>
                                                         <option value="Pending" <% if (order.status === 'Pending') { %>selected<% } %>>Pending</option>
                                                         <option value="Preparing" <% if (order.status === 'Preparing') { %>selected<% } %>>Preparing</option>
                                                         <option value="Completed" <% if (order.status === 'Completed') { %>selected<% } %>>Completed</option>
                                                         <option value="Delivered" <% if (order.status === 'Delivered') { %>selected<% } %>>Delivered</option>
                                                     </select>
-                                                    <button type="submit" class="px-3 py-1 bg-amber-700 text-white text-sm rounded hover:bg-amber-800 transition">Update</button>
                                                 </form>
                                             <% } %>
                                         </td>
@@ -192,7 +192,7 @@
                     <div class="md:col-span-1">
                         <div class="bg-white rounded-xl shadow-sm p-6 border-t-4 border-amber-600">
                             <h3 class="font-bold font-serif text-xl mb-4 text-stone-800">Add Menu Item</h3>
-                            <form action="/admin/items/add" method="POST" class="space-y-4">
+                            <form action="/admin/items/add" method="POST" enctype="multipart/form-data" class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-bold text-stone-600 mb-1">Item Name</label>
                                     <input type="text" name="name" required class="w-full border border-stone-300 rounded p-2 focus:outline-none focus:border-amber-600">
@@ -204,11 +204,16 @@
                                 <div>
                                     <label class="block text-sm font-bold text-stone-600 mb-1">Description</label>
                                     <textarea name="description" rows="2" required class="w-full border border-stone-300 rounded p-2 focus:outline-none focus:border-amber-600">
-                                </textarea>
+                                    </textarea>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <input type="checkbox" name="isVeg" id="isVeg" class="w-4 h-4 text-amber-600">
                                     <label for="isVeg" class="text-sm font-bold text-stone-600">Is Vegetarian?</label>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-stone-600 mb-1">Item Image (Optional)</label>
+                                    <input type="file" name="image" accept="image/*" class="w-full border border-stone-300 rounded p-2 focus:outline-none focus:border-amber-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-amber-50 file:text-amber-900 hover:file:bg-amber-100">
+                                    <p class="text-xs text-stone-500 mt-1">JPG, PNG (max 5MB) - displays on main menu</p>
                                 </div>
                                 <button type="submit" class="w-full bg-amber-900 text-white font-bold py-3 rounded hover:bg-amber-800 transition">Add Item</button>
                             </form>
@@ -229,7 +234,7 @@
                                             <p class="text-xs text-stone-500">₹<%= item.price %> • <%= item.inStock ? 'In Stock' : 'Out of Stock' %></p>
                                         </div>
                                         <div class="flex items-center gap-2">
-                                            <button class="edit-btn p-2 rounded hover:bg-stone-200 transition text-stone-600" title="Edit Item" data-id="<%= item.id %>" data-name="<%= item.name %>" data-price="<%= item.price %>" data-description="<%= (item.description || '').replace(/"/g, '"') %>" data-isveg="<%= item.isVeg %>">
+                                            <button class="edit-btn p-2 rounded hover:bg-stone-200 transition text-stone-600" title="Edit Item" data-id="<%= item.id %>" data-name="<%= item.name %>" data-price="<%= item.price %>" data-description="<%= (item.description || '').replace(/"/g, '"').replace(/'/g, '&apos;') %>" data-isveg="<%= item.isVeg %>" data-image="<%= item.image || '' %>">
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 01 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                                                 </svg>
@@ -311,7 +316,7 @@
                                     <th class="px-6 py-3 text-left text-sm font-bold">Delivered Date</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y">
+                            <tbody>
                                 <% deliveredOrders.forEach(order => { %>
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 text-sm font-mono"><%= order.id.substring(0, 8) %></td>
@@ -327,7 +332,7 @@
                                                 </ul>
                                             <% } %>
                                         </td>
-                                        <td class="px-6 py-4 text-sm font-bold">₹<%= order.total %></td>
+                                        <td class="px-6 py-4 text-sm font-bold">₹<%= parseFloat(order.total) || 0 %></td>
                                         <td class="px-6 py-4 text-sm">
                                             <span class="px-3 py-1 rounded-full text-white text-xs font-bold bg-green-500">
                                                 <%= order.status %>
@@ -357,7 +362,7 @@
                 <h2 class="text-2xl font-bold text-stone-800 font-serif">Edit Menu Item</h2>
                 <button type="button" onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
             </div>
-            <form id="editForm" method="POST" class="space-y-4">
+<form id="editForm" method="POST" enctype="multipart/form-data" class="space-y-4">
                 <div>
                     <label class="block text-sm font-bold text-stone-600 mb-1">Item Name</label>
                     <input type="text" id="editName" name="name" required class="w-full border border-stone-300 rounded p-2 focus:outline-none focus:border-amber-600">
@@ -373,6 +378,15 @@
                 <div class="flex items-center gap-2">
                     <input type="checkbox" id="editIsVeg" name="isVeg" class="w-4 h-4 text-amber-600">
                     <label for="editIsVeg" class="text-sm font-bold text-stone-600">Is Vegetarian?</label>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-stone-600 mb-1">Item Image</label>
+                    <div id="currentImagePreview" class="mb-2 hidden p-2 bg-stone-50 rounded border">
+                        <img id="previewImg" src="" alt="Current" class="max-w-32 max-h-24 rounded object-cover border mb-1 block">
+                        <p class="text-xs text-stone-500">(New upload will replace this)</p>
+                    </div>
+                    <input type="file" id="editImage" name="image" accept="image/*" class="w-full border border-stone-300 rounded p-2 focus:outline-none focus:border-amber-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-amber-50 file:text-amber-900 hover:file:bg-amber-100">
+                    <p id="imageHint" class="text-xs text-stone-500 mt-1">Leave empty to keep current image (if any)</p>
                 </div>
                 <div class="flex gap-3 pt-4">
                     <button type="submit" class="flex-1 bg-amber-900 text-white font-bold py-2 px-4 rounded hover:bg-amber-800 transition">Update Item</button>
@@ -397,12 +411,25 @@
 
         let currentEditItemId = null;
 
-        function openEditModal(itemId, name, price, description, isVeg) {
+        function openEditModal(itemId, name, price, description, isVeg, image) {
             currentEditItemId = itemId;
             document.getElementById('editName').value = name.replace(/"/g, '"');
             document.getElementById('editPrice').value = price;
             document.getElementById('editDescription').value = description.replace(/"/g, '"').replace(/</g, '<').replace(/>/g, '>');
             document.getElementById('editIsVeg').checked = isVeg === 'true' || isVeg === true;
+            
+            // Handle image preview
+            const preview = document.getElementById('currentImagePreview');
+            const hint = document.getElementById('imageHint');
+            if (image) {
+                document.getElementById('previewImg').src = image;
+                preview.classList.remove('hidden');
+                hint.textContent = 'Upload new image to replace current';
+            } else {
+                preview.classList.add('hidden');
+                hint.textContent = 'Upload an image for menu display (recommended)';
+            }
+            
             document.getElementById('editForm').action = `/admin/items/edit/${itemId}`;
             document.getElementById('editModal').classList.remove('hidden');
         }
@@ -422,9 +449,16 @@
                     const price = btn.dataset.price;
                     const description = btn.dataset.description;
                     const isVeg = btn.dataset.isveg;
-                    openEditModal(id, name, price, description, isVeg);
+                    const image = btn.dataset.image || '';
+                    openEditModal(id, name, price, description, isVeg, image);
                 }
             });
+
+            // Show the correct section on page load based on the section parameter
+            const currentSection = '<%= section %>';
+            if (currentSection && document.getElementById(currentSection)) {
+                showSection(currentSection);
+            }
         });
 
         document.getElementById('editModal').onclick = function(e) {

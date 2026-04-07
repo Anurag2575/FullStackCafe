@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
     <title>Full Stack Cafe - Classic Menu</title>
     <style>
         h1, h2, h3, h4, .font-serif { font-family: 'Playfair Display', serif; }
@@ -126,7 +127,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <% items.forEach(item => { %>
-                <div class="bg-white rounded-xl shadow-sm hover:shadow-xl transition duration-300 overflow-hidden border border-stone-100 group flex flex-col">
+                <div class="bg-white rounded-xl shadow-sm hover:shadow-xl transition duration-300 overflow-hidden border border-stone-100 group flex flex-col" data-item-id="<%= item._id %>" data-name="<%= item.name.replace(/"/g, '&quot;') %>" data-price="<%= item.price %>">
                     <!-- Image Area -->
                     <div class="h-48 bg-stone-200 relative overflow-hidden">
                         <% if (item.image) { %>
@@ -157,20 +158,39 @@
                         </div>
                         <p class="text-stone-500 text-sm mb-6 flex-1 leading-relaxed"><%= item.description %></p>
                         
-
+                        <div class="cart-controls">
+<% const cartItem = cart.find(c => c.itemId === item._id.toString()); %>
 <% if (item.inStock) { %>
-    <form action="/cart/add" method="POST" class="mt-auto">
-        <input type="hidden" name="itemId" value="<%= item.id %>">
-        <input type="hidden" name="name" value="<%= item.name %>">
-        <input type="hidden" name="price" value="<%= item.price %>">
-        
-        <button type="submit" class="w-full bg-stone-800 text-white py-3 rounded-lg font-bold hover:bg-amber-900 transition flex items-center justify-center gap-2 group-hover:shadow-lg">
+    <% if (cartItem) { %>
+        <!-- Quantity Controls -->
+        <div class="flex gap-2">
+            <div class="flex-shrink-0 w-20 flex items-center justify-center bg-stone-100 rounded-lg px-2 py-2 border border-stone-200">
+                <form action="/cart/decrease/<%= item._id %>" method="POST" class="cart-form" style="display: inline;">
+                    <button type="submit" class="w-6 h-6 flex items-center justify-center <%= cartItem.quantity === 1 ? 'text-stone-300 cursor-not-allowed' : 'text-amber-700 hover:bg-white hover:shadow-sm rounded-full' %> transition" <%= cartItem.quantity === 1 ? 'disabled' : '' %>>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" /></svg>
+                    </button>
+                </form>
+                <span class="w-6 text-center font-bold text-stone-800 text-sm quantity-<%= item._id %>"><%= cartItem.quantity %></span>
+                <form action="/cart/increase/<%= item._id %>" method="POST" class="cart-form" style="display: inline;">
+                    <button type="submit" class="w-6 h-6 flex items-center justify-center text-amber-700 hover:bg-white hover:shadow-sm rounded-full transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                    </button>
+                </form>
+            </div>
+            <div class="flex-1">
+                <form action="/cart/remove/<%= item._id %>" method="POST" class="cart-form">
+                    <button type="submit" class="w-full h-full bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition text-sm font-medium py-2">Remove</button>
+                </form>
+            </div>
+        </div>
+    <% } else { %>
+        <button onclick="addToCart('<%= item._id %>', '<%= item.name.replace(/'/g, '\\\'') %>', <%= item.price %>, '<%= (item.description || '').replace(/'/g, '\\\'').replace(/\n/g, '\\n') %>')" class="w-full bg-stone-800 text-white py-3 rounded-lg font-bold hover:bg-amber-900 transition flex items-center justify-center gap-2 group-hover:shadow-lg">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
             Add to Order
         </button>
-    </form>
+    <% } %>
 <% } else { %>
     <button disabled class="w-full bg-stone-400 text-stone-600 py-3 rounded-lg font-bold cursor-not-allowed opacity-50 flex items-center justify-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -179,6 +199,7 @@
         Out of Stock
     </button>
 <% } %>
+                        </div>
 
                     </div>
                 </div>
@@ -189,5 +210,161 @@
     <footer class="bg-stone-900 text-stone-400 py-8 text-center mt-12">
         <p>&copy; 2024 Full Stack Cafe. Crafted with ☕ and Code.</p>
     </footer>
+
+    <script>
+        let cartItemCount = <%= cart.length %>;
+
+        function updateCartCount() {
+            let countSpan = document.querySelector('.relative.group span');
+            if (cartItemCount > 0) {
+                if (!countSpan) {
+                    // Create the span
+                    const cartLink = document.querySelector('.relative.group');
+                    countSpan = document.createElement('span');
+                    countSpan.className = 'absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white';
+                    cartLink.appendChild(countSpan);
+                }
+                countSpan.textContent = cartItemCount;
+                countSpan.style.display = 'flex';
+            } else if (countSpan) {
+                countSpan.style.display = 'none';
+            }
+        }
+
+        async function addToCart(itemId, name, price, description) {
+            console.log('Adding item:', itemId, name, price);
+            const data = new URLSearchParams();
+            data.append('itemId', itemId);
+            data.append('name', name);
+            data.append('price', price);
+            data.append('description', description);
+
+            try {
+                const response = await fetch('/cart/add', {
+                    method: 'POST',
+                    body: data,
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const result = await response.json();
+                console.log('Response:', result);
+                if (result.success) {
+                    showToast('Item added to cart!');
+                    if (result.item.quantity === 1) {
+                        cartItemCount++;
+                    }
+                    updateCartCount();
+                    updateCartUI(itemId, result.item.quantity);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function handleCartForm(form, itemId) {
+            event.preventDefault();
+            const data = new URLSearchParams(new FormData(form));
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: data,
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const result = await response.json();
+                if (result.success) {
+                    if (result.item) {
+                        updateCartUI(itemId, result.item.quantity);
+                        showToast(result.message || 'Cart updated!');
+                    } else {
+                        // Removed
+                        resetToAddButton(itemId);
+                        cartItemCount--;
+                        updateCartCount();
+                        showToast(result.message || 'Item removed from cart!');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function updateCartUI(itemId, quantity) {
+            const container = document.querySelector(`[data-item-id="${itemId}"] .cart-controls`);
+            if (!container) return;
+
+            if (quantity > 0) {
+                container.innerHTML = `
+                    <div class="flex gap-2">
+                        <div class="flex-shrink-0 w-20 flex items-center justify-center bg-stone-100 rounded-lg px-2 py-2 border border-stone-200">
+                            <form action="/cart/decrease/${itemId}" method="POST" class="cart-form" style="display: inline;">
+                                <button type="submit" class="w-6 h-6 flex items-center justify-center ${quantity === 1 ? 'text-stone-300 cursor-not-allowed' : 'text-amber-700 hover:bg-white hover:shadow-sm rounded-full'} transition" ${quantity === 1 ? 'disabled' : ''}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" /></svg>
+                                </button>
+                            </form>
+                            <span class="w-6 text-center font-bold text-stone-800 text-sm quantity-${itemId}">${quantity}</span>
+                            <form action="/cart/increase/${itemId}" method="POST" class="cart-form" style="display: inline;">
+                                <button type="submit" class="w-6 h-6 flex items-center justify-center text-amber-700 hover:bg-white hover:shadow-sm rounded-full transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                </button>
+                            </form>
+                        </div>
+                        <div class="flex-1">
+                            <form action="/cart/remove/${itemId}" method="POST" class="cart-form">
+                                <button type="submit" class="w-full h-full bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition text-sm font-medium py-2">Remove</button>
+                            </form>
+                        </div>
+                    </div>
+                `;
+            } else {
+                resetToAddButton(itemId);
+            }
+        }
+
+        function resetToAddButton(itemId) {
+            const card = document.querySelector(`[data-item-id="${itemId}"]`);
+            if (!card) return;
+            const name = card.getAttribute('data-name');
+            const price = card.getAttribute('data-price');
+            const container = card.querySelector('.cart-controls');
+            if (container) {
+                container.innerHTML = `
+                    <button onclick="addToCart('${itemId}', '${name.replace(/'/g, '\\\'')}', ${price})" class="w-full bg-stone-800 text-white py-3 rounded-lg font-bold hover:bg-amber-900 transition flex items-center justify-center gap-2 group-hover:shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Add to Order
+                    </button>
+                `;
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 4000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCartCount();
+            // Handle cart forms
+            document.addEventListener('submit', function(e) {
+                if (e.target.classList.contains('cart-form')) {
+                    e.preventDefault();
+                    const itemId = e.target.action.split('/').pop();
+                    handleCartForm(e.target, itemId);
+                }
+            });
+        });
+    </script>
 </body>
 </html>

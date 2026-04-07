@@ -112,7 +112,7 @@ app.use('/', productRoutes);
 app.use('/cart', cartRoutes);
 app.use('/cart', cartViewRoutes);
 app.use('/order', protect, orderRoutes);
-app.use('/admin', upload.single('image'), handleImageUpload, adminRoutes);
+app.use('/admin', adminRoutes);
 
 // Startup function - connect DB then listen
 async function startServer() {

@@ -1,16 +1,14 @@
-# Student User Activate/Deactivate ✅ COMPLETE
+# Task: Fix total amount not showing in active orders (only rupee sign visible)
 
-**Implemented:**
-1. ✅ `isActive` field added to User model (default true)
-2. ✅ `toggleUserActive` handler in adminController.js (Student-only)
-3. ✅ Route `/admin/users/:id/toggle-active` added
-4. ✅ Login blocks deactivated users → "Your account has been deactivated"
-5. ✅ Manage Users shows role badge + Activate/Deactivate toggle (Students only)
+## Steps:
+- [x] Step 1: Updated user orders view (views/orders.ejs) to use order.total instead of non-existent totalAmount
 
-**Test:**
-1. `npm start` (restart server for model change)
-2. Admin → Manage Users → Click "Deactivate" on Student
-3. Logout → Student login → "Account deactivated" message
-4. Admin reactivate → Student can login
 
-All previous fixes preserved. 🎉
+- [ ] Step 2: Add debug logging in controllers/adminController.js getAdminDashboard for order totals
+- [ ] Step 3: Test admin panel orders section display
+- [ ] Step 4: Verify database order totals (if Mongo URI provided)
+- [ ] Step 5: Test placing new order and check total saves/displays correctly
+- [ ] Step 6: Mark complete and attempt_completion
+
+Current progress: Starting Step 1
+

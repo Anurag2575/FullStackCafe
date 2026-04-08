@@ -15,14 +15,37 @@
         <input type="text" name="name" placeholder="Full Name" class="w-full p-3 mb-4 border rounded-xl bg-slate-50" required>
         <input type="email" name="email" placeholder="Email" class="w-full p-3 mb-4 border rounded-xl bg-slate-50" required>
         <input type="password" name="password" placeholder="Create Password" class="w-full p-3 mb-4 border rounded-xl bg-slate-50" required>
-        <select name="role" class="w-full p-3 mb-6 border rounded-xl bg-slate-50">
+        <select name="role" id="roleSelect" class="w-full p-3 mb-6 border rounded-xl bg-slate-50">
             <option value="Student">I am a Student</option>
             <option value="Admin">I am an Admin</option>
         </select>
+        
+        <!-- Admin ID Field (hidden by default) -->
+        <div id="adminIdContainer" class="hidden">
+            <input type="text" name="adminId" id="adminId" placeholder="Enter Admin Unique ID" class="w-full p-3 mb-6 border rounded-xl bg-slate-50">
+        </div>
+        
         <button type="submit" class="w-full bg-amber-900 text-white py-3 rounded-xl font-bold hover:bg-amber-800 transition">Create Account</button>
         
         <div class="mt-6 text-center">
             <a href="/login" class="text-amber-900 font-bold hover:underline">Sign in</a>
         </div>
     </form>
+
+    <script>
+        const roleSelect = document.getElementById('roleSelect');
+        const adminIdContainer = document.getElementById('adminIdContainer');
+        const adminIdInput = document.getElementById('adminId');
+
+        roleSelect.addEventListener('change', function() {
+            if (this.value === 'Admin') {
+                adminIdContainer.classList.remove('hidden');
+                adminIdInput.required = true;
+            } else {
+                adminIdContainer.classList.add('hidden');
+                adminIdInput.required = false;
+                adminIdInput.value = '';
+            }
+        });
+    </script>
 </body>

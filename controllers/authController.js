@@ -12,8 +12,16 @@ exports.getSignup = (req, res) => {
 
 exports.postSignup = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password, role, adminId } = req.body;
         console.log('Signup Request:', { name, email, role });
+        
+        // Validate admin ID if role is Admin
+        if (role === 'Admin') {
+            if (!adminId || adminId !== '123456') {
+                return res.render('signup', { error: 'Invalid Admin Unique ID' });
+            }
+        }
+        
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             console.log('User already exists');

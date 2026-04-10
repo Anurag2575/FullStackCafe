@@ -1,6 +1,15 @@
-const Item = require('../models/Item');
-const User = require('../models/User');
-const Order = require('../models/Order');
+const {
+    getAllItems,
+    getAllUsers,
+    getAllOrders,
+    getUserById,
+    updateUser,
+    createItem,
+    getItemById,
+    updateItem,
+    getOrderById,
+    updateOrder
+} = require('../storage');
 
 // Helper to determine current section
 const getCurrentSection = (req) => {
@@ -13,11 +22,11 @@ const getCurrentSection = (req) => {
 
 // GET: Admin Panel (formerly dashboard)
 exports.getAdminDashboard = async (req, res) => {
-    const users = await User.find().sort({ createdAt: -1 });
-    const orders = await Order.find({}).populate('userId').sort({ createdAt: -1 });
+    const users = await getAllUsers();
+    const orders = await getAllOrders();
     const activeOrders = orders.filter(o => o.status !== 'Delivered');
     console.log('Active orders sample totals:', activeOrders.slice(0,3).map(o => ({id: o._id.toString().substring(0,8), total: typeof o.total + '=' + o.total, status: o.status})));
-    const items = await Item.find();
+    const items = await getAllItems();
     const section = getCurrentSection(req);
     res.render('admin-panel', { users, orders, items, user: req.user, section });
 };
@@ -25,10 +34,9 @@ exports.getAdminDashboard = async (req, res) => {
 // POST: Toggle User Active Status (Student only)
 exports.toggleUserActive = async (req, res) => {
     const { id } = req.params;
-    const user = await User.findById(id);
+    const user = await getUserById(id);
     if (user && user.role === 'Student') {
-        user.isActive = !user.isActive;
-        await user.save();
+        await updateUser(id, { isActive: !user.isActive });
     }
     const section = 'users';
     res.redirect(`/admin/panel?section=${section}`);
@@ -40,7 +48,7 @@ exports.addItem = async (req, res) => {
     try {
         const { name, price, description, isVeg } = req.body;
         const image = req.file ? `/images/${req.file.filename}` : null;
-        await Item.create({
+        await createItem({
             name,
             price: parseFloat(price),
             description,
@@ -62,10 +70,9 @@ exports.updateItemStock = async (req, res) => {
     const { id } = req.params;
     const { inStock } = req.body; // Expects 'true' or 'false'
     
-    const item = await Item.findById(id);
+    const item = await getItemById(id);
     if (item) {
-        item.inStock = inStock === 'true';
-        await item.save();
+        await updateItem(id, { inStock: inStock === 'true' });
     }
     const section = 'menu';
     res.redirect(`/admin/panel?section=${section}`);
@@ -74,7 +81,7 @@ exports.updateItemStock = async (req, res) => {
 
 // GET: Edit Item Page
 exports.getEditItem = async (req, res) => {
-    const item = await Item.findById(req.params.id);
+    const item = await getItemById(req.params.id);
     if (item) {
         res.render('edit-item', { item, user: req.user });
     } else {
@@ -90,14 +97,16 @@ exports.updateItem = async (req, res) => {
         const { id } = req.params;
         const { name, price, description, isVeg } = req.body;
         
-        const item = await Item.findById(id);
+        const item = await getItemById(id);
         if (item) {
-            item.name = name;
-            item.price = parseFloat(price);
-            item.description = description;
-            item.isVeg = isVeg === 'on';
-            if (req.file) item.image = `/images/${req.file.filename}`;
-            await item.save();
+            const updates = {
+                name,
+                price: parseFloat(price),
+                description,
+                isVeg: isVeg === 'on'
+            };
+            if (req.file) updates.image = `/images/${req.file.filename}`;
+            await updateItem(id, updates);
         }
         const section = 'menu';
         res.redirect(`/admin/panel?section=${section}`);
@@ -120,16 +129,14 @@ exports.updateOrderStatus = async (req, res) => {
         return res.redirect(`/admin/panel?section=${section}`);
     }
     
-    const order = await Order.findById(orderId);
+    const order = await getOrderById(orderId);
     if (order) {
         // Prevent changing status if order is already delivered
         if (order.status === 'Delivered') {
             return res.redirect(`/admin/panel?section=${section}`);
         }
         
-        order.status = status;
-        // order.updatedAt = new Date().toISOString(); // Mongoose handles timestamps if timestamps: true is in schema
-        await order.save();
+        await updateOrder(orderId, { status });
     }
     
     res.redirect(`/admin/panel?section=${section}`);

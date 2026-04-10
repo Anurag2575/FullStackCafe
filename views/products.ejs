@@ -48,6 +48,7 @@
                                 <input type="hidden" name="itemId" value="<%= item.id %>">
                                 <input type="hidden" name="name" value="<%= item.name %>">
                                 <input type="hidden" name="price" value="<%= item.price %>">
+                                <input type="hidden" name="description" value="<%= item.description || '' %>">
                                 <button type="submit" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-indigo-600 transition">Add to Order</button>
                             </form>
                         <% } else { %>

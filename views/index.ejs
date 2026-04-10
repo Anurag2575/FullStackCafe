@@ -10,8 +10,7 @@
     <style>
         h1, h2, h3, h4, .font-serif { font-family: 'Playfair Display', serif; }
         body { font-family: 'Lato', sans-serif; }
-        
-        /* Toast notification styles */
+
         .toast {
             position: fixed;
             top: 20px;
@@ -29,13 +28,13 @@
             align-items: center;
             gap: 8px;
         }
-        
+
         .toast::before {
-            content: '✓';
+            content: "\2713";
             font-size: 20px;
             font-weight: bold;
         }
-        
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -46,7 +45,7 @@
                 transform: translateX(-50%) translateY(0);
             }
         }
-        
+
         @keyframes slideOut {
             from {
                 opacity: 1;
@@ -59,13 +58,11 @@
         }
     </style>
 </head>
-<body class="bg-[#fafaf9] text-stone-800">
+<body class="bg-[#fafaf9] text-stone-800" data-cart-count="<%= cart.length %>">
 
-    <!-- Toast Notification -->
     <% if (message) { %>
         <div class="toast"><%= message %></div>
         <script>
-            // Auto-remove toast after 4 seconds
             setTimeout(() => {
                 const toast = document.querySelector('.toast');
                 if (toast) toast.remove();
@@ -73,13 +70,11 @@
         </script>
     <% } %>
 
-    <!-- Navigation -->
     <nav class="bg-white px-6 py-4 shadow-sm border-b border-stone-200 flex justify-between items-center sticky top-0 z-50">
         <h1 class="text-2xl font-bold text-amber-900 tracking-wider flex items-center gap-2">
-            ☕ FULL STACK CAFE
+            &#9749; FULL STACK CAFE
         </h1>
         <div class="flex items-center gap-6">
-            <!-- always show cart link regardless of login state -->
             <a href="/cart" class="relative group">
                 <div class="p-2 bg-amber-50 rounded-full text-amber-900 group-hover:bg-amber-100 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
@@ -107,7 +102,6 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <header class="bg-amber-900 text-white py-20 px-6 text-center relative overflow-hidden">
         <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
         <div class="relative z-10 max-w-3xl mx-auto">
@@ -117,7 +111,6 @@
         </div>
     </header>
 
-    <!-- Menu Grid -->
     <main id="menu" class="max-w-6xl mx-auto p-8">
         <div class="flex items-center justify-center mb-12">
             <div class="h-px bg-stone-300 w-24"></div>
@@ -127,16 +120,22 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <% items.forEach(item => { %>
-                <div class="bg-white rounded-xl shadow-sm hover:shadow-xl transition duration-300 overflow-hidden border border-stone-100 group flex flex-col" data-item-id="<%= item._id %>" data-name="<%= item.name.replace(/"/g, '&quot;') %>" data-price="<%= item.price %>">
-                    <!-- Image Area -->
+                <% const itemId = String(item._id || item.id); %>
+                <% const cartItem = cart.find(c => c.itemId === itemId); %>
+                <div
+                    class="bg-white rounded-xl shadow-sm hover:shadow-xl transition duration-300 overflow-hidden border border-stone-100 group flex flex-col"
+                    data-item-id="<%= itemId %>"
+                    data-name="<%= item.name %>"
+                    data-price="<%= item.price %>"
+                    data-description="<%= item.description || '' %>"
+                >
                     <div class="h-48 bg-stone-200 relative overflow-hidden">
                         <% if (item.image) { %>
                             <img src="<%= item.image %>" alt="<%= item.name %>" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                         <% } else { %>
-                            <div class="w-full h-full flex items-center justify-center text-stone-400 text-4xl">☕</div>
+                            <div class="w-full h-full flex items-center justify-center text-stone-400 text-4xl">&#9749;</div>
                         <% } %>
-                        
-                        <!-- Veg/Non-Veg Badge -->
+
                         <div class="absolute top-3 right-3 bg-white p-1 rounded-md shadow-sm">
                             <% if (item.isVeg) { %>
                                 <div class="w-4 h-4 border-2 border-green-600 flex items-center justify-center rounded-sm">
@@ -150,57 +149,53 @@
                         </div>
                     </div>
 
-                    <!-- Content -->
                     <div class="p-6 flex-1 flex flex-col">
                         <div class="flex justify-between items-start mb-2">
                             <h4 class="text-xl font-bold text-stone-800 font-serif"><%= item.name %></h4>
-                            <span class="text-lg font-bold text-amber-700">₹<%= item.price %></span>
+                            <span class="text-lg font-bold text-amber-700">&#8377;<%= item.price %></span>
                         </div>
                         <p class="text-stone-500 text-sm mb-6 flex-1 leading-relaxed"><%= item.description %></p>
-                        
-                        <div class="cart-controls">
-<% const cartItem = cart.find(c => c.itemId === item._id.toString()); %>
-<% if (item.inStock) { %>
-    <% if (cartItem) { %>
-        <!-- Quantity Controls -->
-        <div class="flex gap-2">
-            <div class="flex-shrink-0 w-20 flex items-center justify-center bg-stone-100 rounded-lg px-2 py-2 border border-stone-200">
-                <form action="/cart/decrease/<%= item._id %>" method="POST" class="cart-form" style="display: inline;">
-                    <button type="submit" class="w-6 h-6 flex items-center justify-center <%= cartItem.quantity === 1 ? 'text-stone-300 cursor-not-allowed' : 'text-amber-700 hover:bg-white hover:shadow-sm rounded-full' %> transition" <%= cartItem.quantity === 1 ? 'disabled' : '' %>>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" /></svg>
-                    </button>
-                </form>
-                <span class="w-6 text-center font-bold text-stone-800 text-sm quantity-<%= item._id %>"><%= cartItem.quantity %></span>
-                <form action="/cart/increase/<%= item._id %>" method="POST" class="cart-form" style="display: inline;">
-                    <button type="submit" class="w-6 h-6 flex items-center justify-center text-amber-700 hover:bg-white hover:shadow-sm rounded-full transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                    </button>
-                </form>
-            </div>
-            <div class="flex-1">
-                <form action="/cart/remove/<%= item._id %>" method="POST" class="cart-form">
-                    <button type="submit" class="w-full h-full bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition text-sm font-medium py-2">Remove</button>
-                </form>
-            </div>
-        </div>
-    <% } else { %>
-        <button onclick="addToCart('<%= item._id %>', '<%= item.name.replace(/'/g, '\\\'') %>', <%= item.price %>, '<%= (item.description || '').replace(/'/g, '\\\'').replace(/\n/g, '\\n') %>')" class="w-full bg-stone-800 text-white py-3 rounded-lg font-bold hover:bg-amber-900 transition flex items-center justify-center gap-2 group-hover:shadow-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Add to Order
-        </button>
-    <% } %>
-<% } else { %>
-    <button disabled class="w-full bg-stone-400 text-stone-600 py-3 rounded-lg font-bold cursor-not-allowed opacity-50 flex items-center justify-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        Out of Stock
-    </button>
-<% } %>
-                        </div>
 
+                        <div class="cart-controls">
+                            <% if (item.inStock) { %>
+                                <% if (cartItem) { %>
+                                    <div class="flex gap-2">
+                                        <div class="flex-shrink-0 w-20 flex items-center justify-center bg-stone-100 rounded-lg px-2 py-2 border border-stone-200">
+                                            <form action="/cart/decrease/<%= itemId %>" method="POST" class="cart-form" style="display: inline;">
+                                                <button type="submit" class="w-6 h-6 flex items-center justify-center <%= cartItem.quantity === 1 ? 'text-stone-300 cursor-not-allowed' : 'text-amber-700 hover:bg-white hover:shadow-sm rounded-full' %> transition" <%= cartItem.quantity === 1 ? 'disabled' : '' %>>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" /></svg>
+                                                </button>
+                                            </form>
+                                            <span class="w-6 text-center font-bold text-stone-800 text-sm quantity-<%= itemId %>"><%= cartItem.quantity %></span>
+                                            <form action="/cart/increase/<%= itemId %>" method="POST" class="cart-form" style="display: inline;">
+                                                <button type="submit" class="w-6 h-6 flex items-center justify-center text-amber-700 hover:bg-white hover:shadow-sm rounded-full transition">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <div class="flex-1">
+                                            <form action="/cart/remove/<%= itemId %>" method="POST" class="cart-form">
+                                                <button type="submit" class="w-full h-full bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition text-sm font-medium py-2">Remove</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                <% } else { %>
+                                    <button type="button" class="add-to-cart-btn w-full bg-stone-800 text-white py-3 rounded-lg font-bold hover:bg-amber-900 transition flex items-center justify-center gap-2 group-hover:shadow-lg" data-item-id="<%= itemId %>">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
+                                        Add to Order
+                                    </button>
+                                <% } %>
+                            <% } else { %>
+                                <button disabled class="w-full bg-stone-400 text-stone-600 py-3 rounded-lg font-bold cursor-not-allowed opacity-50 flex items-center justify-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                    Out of Stock
+                                </button>
+                            <% } %>
+                        </div>
                     </div>
                 </div>
             <% }) %>
@@ -208,17 +203,16 @@
     </main>
 
     <footer class="bg-stone-900 text-stone-400 py-8 text-center mt-12">
-        <p>&copy; 2024 Full Stack Cafe. Crafted with ☕ and Code.</p>
+        <p>&copy; 2024 Full Stack Cafe. Crafted with &#9749; and Code.</p>
     </footer>
 
     <script>
-        let cartItemCount = <%= cart.length %>;
+        let cartItemCount = Number.parseInt(document.body.dataset.cartCount || '0', 10);
 
         function updateCartCount() {
             let countSpan = document.querySelector('.relative.group span');
             if (cartItemCount > 0) {
                 if (!countSpan) {
-                    // Create the span
                     const cartLink = document.querySelector('.relative.group');
                     countSpan = document.createElement('span');
                     countSpan.className = 'absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white';
@@ -232,7 +226,6 @@
         }
 
         async function addToCart(itemId, name, price, description) {
-            console.log('Adding item:', itemId, name, price);
             const data = new URLSearchParams();
             data.append('itemId', itemId);
             data.append('name', name);
@@ -249,7 +242,6 @@
                     }
                 });
                 const result = await response.json();
-                console.log('Response:', result);
                 if (result.success) {
                     showToast('Item added to cart!');
                     if (result.item.quantity === 1) {
@@ -281,7 +273,6 @@
                         updateCartUI(itemId, result.item.quantity);
                         showToast(result.message || 'Cart updated!');
                     } else {
-                        // Removed
                         resetToAddButton(itemId);
                         cartItemCount--;
                         updateCartCount();
@@ -328,12 +319,11 @@
         function resetToAddButton(itemId) {
             const card = document.querySelector(`[data-item-id="${itemId}"]`);
             if (!card) return;
-            const name = card.getAttribute('data-name');
-            const price = card.getAttribute('data-price');
+
             const container = card.querySelector('.cart-controls');
             if (container) {
                 container.innerHTML = `
-                    <button onclick="addToCart('${itemId}', '${name.replace(/'/g, '\\\'')}', ${price})" class="w-full bg-stone-800 text-white py-3 rounded-lg font-bold hover:bg-amber-900 transition flex items-center justify-center gap-2 group-hover:shadow-lg">
+                    <button type="button" class="add-to-cart-btn w-full bg-stone-800 text-white py-3 rounded-lg font-bold hover:bg-amber-900 transition flex items-center justify-center gap-2 group-hover:shadow-lg" data-item-id="${itemId}">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
@@ -355,7 +345,22 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             updateCartCount();
-            // Handle cart forms
+
+            document.addEventListener('click', function(e) {
+                const button = e.target.closest('.add-to-cart-btn');
+                if (!button) return;
+
+                const card = button.closest('[data-item-id]');
+                if (!card) return;
+
+                addToCart(
+                    button.dataset.itemId,
+                    card.getAttribute('data-name'),
+                    card.getAttribute('data-price'),
+                    card.getAttribute('data-description') || ''
+                );
+            });
+
             document.addEventListener('submit', function(e) {
                 if (e.target.classList.contains('cart-form')) {
                     e.preventDefault();

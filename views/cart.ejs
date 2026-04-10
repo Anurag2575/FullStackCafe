@@ -53,10 +53,12 @@
                 <h3 class="font-bold text-xl mb-6 text-stone-700 font-serif">Items in Your Cart</h3>
                 
                 <% cart.forEach(item => { %>
+                    <% const itemName = item && item.name && item.name !== 'null' && item.name !== 'undefined' ? item.name : 'Unnamed Item'; %>
+                    <% const itemDescription = item && item.description && item.description !== 'null' && item.description !== 'undefined' ? item.description : 'No description available'; %>
                     <div class="flex justify-between items-center py-6 border-b border-stone-100 last:border-b-0 hover:bg-stone-50 px-4 rounded-lg transition duration-200">
                         <div class="flex-1">
-                            <h3 class="font-bold text-lg text-stone-800 font-serif"><%= item.name %></h3>
-                            <p class="text-stone-500 text-sm"><%= item.description || 'No description available' %></p>
+                            <h3 class="font-bold text-lg text-stone-800 font-serif"><%= itemName %></h3>
+                            <p class="text-stone-500 text-sm"><%= itemDescription %></p>
                             <p class="text-stone-500 text-sm">₹<%= item.price %> per item</p>
                         </div>
                         <div class="flex items-center gap-6">

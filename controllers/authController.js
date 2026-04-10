@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { findUserByEmail, createUser, getUserById } = require('../storage');
 
 exports.getLogin = (req, res) => {
     res.render('login', { error: null });
@@ -22,13 +22,13 @@ exports.postSignup = async (req, res) => {
             }
         }
         
-        const existingUser = await User.findOne({ email });
+        const existingUser = await findUserByEmail(email);
         if (existingUser) {
             console.log('User already exists');
             return res.render('signup', { error: 'Email already registered' });
         }
         const hashed = await bcrypt.hash(password, 10);
-        const newUser = await User.create({ name, email, password: hashed, role: role || 'Student' });
+        const newUser = await createUser({ name, email, password: hashed, role: role || 'Student' });
         console.log('User created:', newUser);
         res.redirect('/login');
     } catch (err) {
@@ -39,7 +39,7 @@ exports.postSignup = async (req, res) => {
 
 exports.postLogin = async (req, res) => {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await findUserByEmail(email);
     if (!user) {
         return res.render('login', { error: 'Invalid Credentials' });
     }
@@ -84,6 +84,6 @@ exports.getLogout = (req, res) => {
 };
 
 exports.getDashboard = async (req, res) => {
-    const user = await User.findById(req.user.id);
+    const user = await getUserById(req.user.id);
     res.render('dashboard', { user });
 };

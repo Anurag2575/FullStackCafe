@@ -1,5 +1,4 @@
-const User = require('../models/User');
-const Order = require('../models/Order');
+const { createOrder, getOrdersByUserId, getUserById, updateUser } = require('../storage');
 
 // POST: Place Order
 exports.placeOrder = async (req, res) => {
@@ -24,7 +23,7 @@ exports.placeOrder = async (req, res) => {
     }
 
     // Create order
-    Order.create({
+    createOrder({
         userId: userId,
         items: cart,
         total: total,
@@ -51,8 +50,8 @@ exports.confirmationPage = (req, res) => {
 // GET: View Order History (Active and Past Orders)
 exports.getOrders = async (req, res) => {
     const userId = req.user.id || req.session.userId;
-    const user = await User.findById(userId);
-    const allOrders = await Order.find({ userId: userId }).sort({ createdAt: -1 });
+    const user = await getUserById(userId);
+    const allOrders = await getOrdersByUserId(userId);
     
     // Separate active and past orders
     const activeOrders = allOrders.filter(o => o.status && (o.status === 'Pending' || o.status === 'Preparing'));
@@ -64,9 +63,15 @@ exports.getOrders = async (req, res) => {
 // POST: Wallet Top-up
 exports.topupWallet = async (req, res) => {
     const { amount } = req.body;
-    const user = await User.findById(req.user.id);
-    user.walletBalance += parseInt(amount);
-    await user.save();
+    const user = await getUserById(req.user.id);
+    if (!user) {
+        req.session.message = 'Unable to find your account.';
+        return res.redirect('/dashboard');
+    }
+
+    await updateUser(req.user.id, {
+        walletBalance: (user.walletBalance || 0) + parseInt(amount, 10)
+    });
     res.redirect('/dashboard');
 };
 

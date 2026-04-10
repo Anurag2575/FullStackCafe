@@ -5,9 +5,9 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
-const User = require('./models/User');
 require('dotenv').config();
 const mongoose = require('mongoose');
+const { getUserById } = require('./storage');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -20,9 +20,10 @@ const adminRoutes = require('./routes/adminRoutes');
 const { protect } = require('./middleware/authMiddleware');
 
 const app = express();
+mongoose.set('bufferCommands', false);
 
 // Database Connection with retry & local default
-const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://anuragvats2575_db_user:VTdPfrBSKxpGRjJx@cluster0.zgzaxrp.mongodb.net/?retryWrites=true&w=majority';
+const mongoURI = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/fullstack-cafe';
 
 // Startup function - connect DB then listen
 // All middleware and routes first
@@ -85,7 +86,7 @@ app.use((req, res, next) => {
 // Middleware to make user and cart available to all templates
 app.use(async (req, res, next) => {
     res.locals.cart = req.session.cart || [];
-    res.locals.user = null; // Graceful fallback - user features work in memory
+    res.locals.user = req.session?.userId ? await getUserById(req.session.userId) : null;
     next();
 });
 

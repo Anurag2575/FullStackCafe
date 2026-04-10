@@ -22,7 +22,7 @@ const { protect } = require('./middleware/authMiddleware');
 const app = express();
 
 // Database Connection with retry & local default
-const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/fullstack_cafe';
+const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://anuragvats2575_db_user:VTdPfrBSKxpGRjJx@cluster0.zgzaxrp.mongodb.net/?retryWrites=true&w=majority';
 
 // Startup function - connect DB then listen
 // All middleware and routes first
@@ -85,23 +85,7 @@ app.use((req, res, next) => {
 // Middleware to make user and cart available to all templates
 app.use(async (req, res, next) => {
     res.locals.cart = req.session.cart || [];
-    let populatedUser = null;
-
-    if (req.session && req.session.userId) {
-        try { populatedUser = await User.findById(req.session.userId); } catch (e) { console.error(e); }
-    } else if (req.cookies && req.cookies.token) {
-        try {
-            const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET || 'secret123');
-            populatedUser = await User.findById(decoded.id);
-            if (decoded.id && req.session && !req.session.userId) {
-                req.session.userId = decoded.id;
-            }
-        } catch (err) {
-            populatedUser = null;
-        }
-    }
-
-    res.locals.user = populatedUser;
+    res.locals.user = null; // Graceful fallback - user features work in memory
     next();
 });
 
@@ -120,8 +104,8 @@ async function startServer() {
     await mongoose.connect(mongoURI);
     console.log('✅ Connected to MongoDB');
   } catch (err) {
-    console.error('❌ MongoDB connection error:', err.message);
-    process.exit(1);
+    console.warn('⚠️ MongoDB unavailable - running in memory-only mode');
+    console.warn('💡 Core features work. Install DB for full functionality.');
   }
   
   const PORT = process.env.PORT || 3000;

@@ -16,7 +16,7 @@ const Item = mongoose.model('Item', itemSchema);
 async function fixDescriptions() {
     try {
         // Connect to same DB as server
-        await mongoose.connect('mongodb://localhost:27017/fullstack_cafe');
+await mongoose.connect('mongodb+srv://anuragvats2575_db_user:VTdPfrBSKxpGRjJx@cluster0.zgzaxrp.mongodb.net/fullstack_cafe?retryWrites=true&w=majority');
         console.log('✅ Connected to MongoDB');
 
         // Fetch all items
